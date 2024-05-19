@@ -50,24 +50,24 @@ func PrintStartMenu() {
 
 	// Mencetak tampilan dengan dekorasi dan informasi proyek yang lebih menarik
 	printLine()
-	printTitle(" Project Tugas Besar Alpro ")
+	printTitle(" Alpro Assignment ")
 	printDecorativeLine()
-	printSubtitle(" Tentang: Email App ")
+	printSubtitle(" EMAIL APP ")
 	printEmptyLine()
-	printSubtitle(" Dibuat oleh: ")
-	printAuthor(" Rico bersama Daffa ")
+	printSubtitle(" Created by: ")
+	printAuthor(" Rico x Daffa ")
 	printBottomLine()
 
 	// Menambahkan menu user dan admin
 	printLine()
-	printTitle(" Menu Utama ")
+	printTitle(" Primary Menu ")
 	printDecorativeLine()
 	printMenu(1, "User Menu")
 	printMenu(2, "Admin Menu")
 	printDecorativeLine()
-	printInstruction(" Pilih menu dengan memasukkan angka ")
+	printInstruction(" Choose the number of the menu to continue ")
 	printBottomLine()
 
 	// Menambahkan pesan penutup dengan warna yang berbeda
-	color.New(color.FgHiYellow, color.Bold).Println("\n🌟 Terima kasih telah menggunakan Email App! 🌟")
+	color.New(color.FgHiYellow, color.Bold).Println("\n🌟 Thanks for using this app! 🌟")
 }
