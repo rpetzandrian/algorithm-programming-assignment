@@ -3,6 +3,7 @@ package menu
 import (
 	"email-app/src/decorative"
 	"email-app/src/entity"
+	"email-app/src/util"
 	"fmt"
 )
 
@@ -34,6 +35,7 @@ func InitRoutes() {
 					fmt.Scan(choiceIndex)
 					*choiceIndex -= 1
 					// Pilihan input nomor dari user dikurang 1 dan kita memanggil Menu untuk mengubah dan memanggil fungsi yang ada pada struct Choice
+					util.ClearScreen()
 					Menu()
 				},
 				ChoiceList: [4]entity.Choice{
@@ -89,6 +91,7 @@ func InitRoutes() {
 					decorative.PrintBottomLine()
 					fmt.Scan(choiceIndex)
 					*choiceIndex -= 1
+					util.ClearScreen()
 					Menu()
 				},
 				ChoiceList: [4]entity.Choice{
@@ -221,6 +224,7 @@ func PrintStartMenu(userTypeIndex *int, routeIndex *int) {
 	fmt.Scan(userTypeIndex)
 	*userTypeIndex -= 1
 	*routeIndex = 0
+	util.ClearScreen()
 	Menu()
 	// Menambahkan pesan penutup dengan warna yang berbeda
 	// color.New(color.FgHiYellow, color.Bold).Println("\n🌟 Thanks for using this app! 🌟")
