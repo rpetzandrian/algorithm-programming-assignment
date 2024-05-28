@@ -1,73 +1,229 @@
 package menu
 
-import "github.com/fatih/color"
+import (
+	"email-app/src/decorative"
+	"email-app/src/entity"
+	"fmt"
+)
 
-func PrintStartMenu() {
-	// Fungsi untuk mencetak garis dekoratif atas dan bawah dengan karakter khusus
-	printLine := func() {
-		color.New(color.FgHiWhite).Println("╔══════════════════════════════════════════════════════════╗")
+var routes entity.USER_TYPE_LIST
+var userTypeIndex, routeIndex, choiceIndex int
+
+func InitRoutes() {
+	userTypeIndex = -1
+	routeIndex = -1
+	choiceIndex = -1
+	routes[0] = entity.UserType{
+		UserType: "Admin",
+		RouteList: [10]entity.Route{
+			{
+				RouteId:   0,
+				RouteName: "Admin Auth Menu",
+				RouteFunc: func(choiceIndex *int) {
+					HeaderTemplate()
+					// Menambahkan menu user dan admin
+					decorative.PrintLine()
+					decorative.PrintTitle(" Admin Auth Menu ")
+					decorative.PrintDecorativeLine()
+					decorative.PrintMenu(1, "Register")
+					decorative.PrintMenu(2, "Login")
+					decorative.PrintMenu(3, "Back")
+					decorative.PrintDecorativeLine()
+					decorative.PrintInstruction(" Choose the number of the menu to continue ")
+					decorative.PrintBottomLine()
+					fmt.Scan(choiceIndex)
+					*choiceIndex -= 1
+					Menu()
+				},
+				ChoiceList: [4]entity.Choice{
+					{
+						ChoiceNumber: 1,
+						ChoiceText:   "Register",
+						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							*userTypeIndex = 0
+							*routeIndex = 1
+							*choiceIndex = -1
+							Menu()
+						},
+					},
+					{
+						ChoiceNumber: 2,
+						ChoiceText:   "Login",
+						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							*userTypeIndex = 0
+							*routeIndex = 1
+							*choiceIndex = -1
+							Menu()
+						},
+					},
+					{
+						ChoiceNumber: 3,
+						ChoiceText:   "Back",
+						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							*userTypeIndex = -1
+							*routeIndex = -1
+							*choiceIndex = -1
+							Menu()
+						},
+					},
+				},
+			},
+			{
+				RouteId:   1,
+				RouteName: "Admin Approval and Rejection Menu",
+				RouteFunc: func(choiceIndex *int) {
+					HeaderTemplate()
+					// Menambahkan menu user dan admin
+					decorative.PrintLine()
+					decorative.PrintTitle(" Admin Approval and Rejection Menu ")
+					decorative.PrintDecorativeLine()
+					decorative.PrintMenu(1, "Approve/reject user")
+					decorative.PrintMenu(2, "Back")
+					decorative.PrintDecorativeLine()
+					decorative.PrintInstruction(" Choose the number of the menu to continue ")
+					decorative.PrintBottomLine()
+					fmt.Scan(choiceIndex)
+					*choiceIndex -= 1
+					Menu()
+				},
+				ChoiceList: [4]entity.Choice{
+					{
+						ChoiceNumber: 1,
+						ChoiceText:   "Approve/reject user",
+						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+
+						},
+					},
+					{
+						ChoiceNumber: 2,
+						ChoiceText:   "Back",
+						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							*userTypeIndex = 0
+							*routeIndex = 0
+							*choiceIndex = -1
+							Menu()
+						},
+					},
+				},
+			},
+		},
 	}
+	routes[1] = entity.UserType{
+		UserType: "User",
+		RouteList: [10]entity.Route{
+			{
+				RouteId:   0,
+				RouteName: "User Auth Menu",
+				RouteFunc: func(choiceIndex *int) {
 
-	// Fungsi untuk mencetak garis bawah dengan karakter khusus
-	printBottomLine := func() {
-		color.New(color.FgHiWhite).Println("╚══════════════════════════════════════════════════════════╝")
+				},
+				ChoiceList: [4]entity.Choice{
+					{
+						ChoiceNumber: 1,
+						ChoiceText:   "Register",
+						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+
+						},
+					},
+					{
+						ChoiceNumber: 2,
+						ChoiceText:   "Login",
+						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+
+						},
+					},
+					{
+						ChoiceNumber: 0,
+						ChoiceText:   "Back",
+						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+
+						},
+					},
+				},
+			},
+			{
+				RouteId:   1,
+				RouteName: "User Sub Menu",
+				RouteFunc: func(choiceIndex *int) {
+
+				},
+				ChoiceList: [4]entity.Choice{
+					{
+						ChoiceNumber: 1,
+						ChoiceText:   "Send email",
+						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+
+						},
+					},
+					{
+						ChoiceNumber: 2,
+						ChoiceText:   "Inbox",
+						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+
+						},
+					},
+					{
+						ChoiceNumber: 3,
+						ChoiceText:   "Outbox",
+						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+
+						},
+					},
+					{
+						ChoiceNumber: 0,
+						ChoiceText:   "Back",
+						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+
+						},
+					},
+				},
+			},
+		},
 	}
+}
 
-	// Fungsi untuk mencetak judul dengan warna dan gaya, dan karakter khusus
-	printTitle := func(title string) {
-		color.New(color.FgHiCyan, color.Bold).Printf("║ %-56s ║\n", title)
+func Menu() {
+	fmt.Printf("user type : %d route index : %d choice index : %d\n", userTypeIndex, routeIndex, choiceIndex)
+	if userTypeIndex != -1 && routeIndex != -1 {
+		if choiceIndex != -1 {
+			routes[userTypeIndex].RouteList[routeIndex].ChoiceList[choiceIndex].ChoiceFunc(&userTypeIndex, &routeIndex, &choiceIndex)
+		} else {
+			routes[userTypeIndex].RouteList[routeIndex].RouteFunc(&choiceIndex)
+		}
+	} else {
+		PrintStartMenu(&userTypeIndex, &routeIndex)
 	}
+}
 
-	// Fungsi untuk mencetak subtitle dengan warna dan gaya, dan karakter khusus
-	printSubtitle := func(subtitle string) {
-		color.New(color.FgHiGreen).Printf("║ %-56s ║\n", subtitle)
-	}
+func PrintStartMenu(userTypeIndex *int, routeIndex *int) {
 
-	// Fungsi untuk mencetak nama pembuat dengan warna dan gaya, dan karakter khusus
-	printAuthor := func(author string) {
-		color.New(color.FgHiMagenta).Printf("║ %-56s ║\n", author)
-	}
-
-	// Fungsi untuk mencetak baris kosong dengan karakter khusus
-	printEmptyLine := func() {
-		color.New(color.FgHiWhite).Println("║                                                          ║")
-	}
-
-	// Fungsi untuk mencetak menu dengan nomor urut dan karakter khusus
-	printMenu := func(number int, menu string) {
-		color.New(color.FgHiYellow).Printf("║ %d. %-53s ║\n", number, menu)
-	}
-
-	// Fungsi untuk mencetak dekorasi tambahan
-	printDecorativeLine := func() {
-		color.New(color.FgHiBlue).Println("╠══════════════════════════════════════════════════════════╣")
-	}
-
-	// Fungsi untuk mencetak kalimat petunjuk
-	printInstruction := func(instruction string) {
-		color.New(color.FgHiWhite).Printf("║ %-56s ║\n", instruction)
-	}
-
-	// Mencetak tampilan dengan dekorasi dan informasi proyek yang lebih menarik
-	printLine()
-	printTitle(" Alpro Assignment ")
-	printDecorativeLine()
-	printSubtitle(" EMAIL APP ")
-	printEmptyLine()
-	printSubtitle(" Created by: ")
-	printAuthor(" Rico x Daffa ")
-	printBottomLine()
+	HeaderTemplate()
 
 	// Menambahkan menu user dan admin
-	printLine()
-	printTitle(" Primary Menu ")
-	printDecorativeLine()
-	printMenu(1, "User Menu")
-	printMenu(2, "Admin Menu")
-	printDecorativeLine()
-	printInstruction(" Choose the number of the menu to continue ")
-	printBottomLine()
+	decorative.PrintLine()
+	decorative.PrintTitle(" Primary Menu ")
+	decorative.PrintDecorativeLine()
+	decorative.PrintMenu(1, "Admin Menu")
+	decorative.PrintMenu(2, "User Menu")
+	decorative.PrintDecorativeLine()
+	decorative.PrintInstruction(" Choose the number of the menu to continue ")
+	decorative.PrintBottomLine()
 
+	fmt.Scan(userTypeIndex)
+	*userTypeIndex -= 1
+	*routeIndex = 0
+	Menu()
 	// Menambahkan pesan penutup dengan warna yang berbeda
-	color.New(color.FgHiYellow, color.Bold).Println("\n🌟 Thanks for using this app! 🌟")
+	// color.New(color.FgHiYellow, color.Bold).Println("\n🌟 Thanks for using this app! 🌟")
+}
+func HeaderTemplate() {
+	// Mencetak tampilan dengan dekorasi dan informasi proyek yang lebih menarik
+	decorative.PrintLine()
+	decorative.PrintTitle(" Alpro Assignment ")
+	decorative.PrintDecorativeLine()
+	decorative.PrintSubtitle(" EMAIL APP ")
+	decorative.PrintEmptyLine()
+	decorative.PrintSubtitle(" Created by: ")
+	decorative.PrintAuthor(" Rico x Daffa ")
+	decorative.PrintBottomLine()
 }
