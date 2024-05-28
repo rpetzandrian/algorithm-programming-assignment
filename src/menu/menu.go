@@ -33,6 +33,7 @@ func InitRoutes() {
 					decorative.PrintBottomLine()
 					fmt.Scan(choiceIndex)
 					*choiceIndex -= 1
+					// Pilihan input nomor dari user dikurang 1 dan kita memanggil Menu untuk mengubah dan memanggil fungsi yang ada pada struct Choice
 					Menu()
 				},
 				ChoiceList: [4]entity.Choice{
@@ -40,8 +41,12 @@ func InitRoutes() {
 						ChoiceNumber: 1,
 						ChoiceText:   "Register",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+
+							// Memberi nilai 0 pada userTypeIndex
 							*userTypeIndex = 0
+							// Memberi nilai 1 pada routeIndex untuk memanggil fungsi yang ada pada userTypeIndex 0 dan routeIndex 1
 							*routeIndex = 1
+							// Memberi nilai -1 pada choiceIndex, -1 diberikan karena user belum melakukan input pada halaman yang dituju
 							*choiceIndex = -1
 							Menu()
 						},
@@ -186,8 +191,12 @@ func Menu() {
 	fmt.Printf("user type : %d route index : %d choice index : %d\n", userTypeIndex, routeIndex, choiceIndex)
 	if userTypeIndex != -1 && routeIndex != -1 {
 		if choiceIndex != -1 {
+			/* Jika user sudah memilih nomor input, maka akan menampilkan fungsi yang ada pada
+			struct Choice yaitu berupa ChoiceFunc*/
 			routes[userTypeIndex].RouteList[routeIndex].ChoiceList[choiceIndex].ChoiceFunc(&userTypeIndex, &routeIndex, &choiceIndex)
 		} else {
+			/* Jika user belum memilih nomor input, maka akan menampilkan fungsi yang ada pada
+			struct Route yaitu RouteFunc untuk memberikan pilihan kepada user*/
 			routes[userTypeIndex].RouteList[routeIndex].RouteFunc(&choiceIndex)
 		}
 	} else {
