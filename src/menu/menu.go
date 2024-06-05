@@ -9,7 +9,7 @@ import (
 )
 
 var routes entity.USER_TYPE_LIST
-var userTypeIndex, routeIndex, choiceIndex, lastRouteIndex int
+var userTypeIndex, routeIndex, choiceIndex int
 
 var USERS entity.USER_LIST
 var ADMINS entity.USER_ADMIN_LIST
@@ -18,9 +18,9 @@ var CurrentLogged entity.LoggedUser
 
 func InitRoutes() {
 	// Inisialisasi Route
-	userTypeIndex = -1
-	routeIndex = -1
-	choiceIndex = -1
+	userTypeIndex = -1 // 0 for admin 1 for user
+	routeIndex = -1    // menu
+	choiceIndex = -1   // sub menu
 
 	// Inisialisasi data User
 	CurrentLogged = entity.LoggedUser{Id: -1, Name: "", Email: "", Role: -1}
@@ -147,7 +147,11 @@ func InitRoutes() {
 						ChoiceNumber: 1,
 						ChoiceText:   "Approve/reject user",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							authentication.RetrieveUnverifiedUser(USERS)
 
+							*choiceIndex = -1
+							util.ClearScreen()
+							Menu()
 						},
 					},
 					{
@@ -243,14 +247,27 @@ func InitRoutes() {
 
 							// Function to login user
 							loggedIn := CurrentLogged.Id != -1
+							errorMessage := ""
 							for !loggedIn {
+								decorative.PrintAlert(errorMessage)
+								decorative.PrintInfo(" Input instruction: ")
+
+								var key int
+								inputsMenus(2, &key)
+								if key == 2 {
+									*routeIndex = 0
+									*choiceIndex = -1
+
+									util.ClearScreen()
+									Menu()
+								}
+
 								email, password := authentication.InputUserLogin()
 								err, message := authentication.LoginUser(email, password, USERS, &CurrentLogged)
 
 								if err {
-									fmt.Println(message)
+									errorMessage = message
 								} else {
-									fmt.Println(message)
 									loggedIn = true
 								}
 							}
@@ -287,7 +304,9 @@ func InitRoutes() {
 					decorative.PrintDecorativeLine()
 					decorative.PrintInstruction(" Choose the number of the menu to continue ")
 					decorative.PrintBottomLine()
-					fmt.Scan(choiceIndex)
+
+					inputsMenus(3, choiceIndex)
+
 					*choiceIndex -= 1
 					// Pilihan input nomor dari user dikurang 1 dan kita memanggil Menu untuk mengubah dan memanggil fungsi yang ada pada struct Choice
 					util.ClearScreen()
@@ -389,6 +408,10 @@ func HeaderUserMenu() {
 func headerPage(page string) {
 	decorative.PrintLine()
 	decorative.PrintSubtitle(page)
+	decorative.PrintEmptyLine()
+	decorative.PrintInstruction(" Input number to continue:  ")
+	decorative.PrintInstruction(" Press 1 to continue ")
+	decorative.PrintInstruction(" Press 2 to back")
 	decorative.PrintBottomLine()
 }
 
@@ -414,4 +437,10 @@ func validateMenuInputs(max int, input *int) (err bool) {
 	}
 
 	return false
+}
+
+func infoPage(info string) {
+	decorative.PrintLine()
+	decorative.PrintSubtitle(info)
+	decorative.PrintBottomLine()
 }

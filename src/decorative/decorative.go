@@ -48,3 +48,13 @@ func PrintDecorativeLine() {
 func PrintInstruction(instruction string) {
 	color.New(color.FgHiWhite).Printf("║ %-56s ║\n", instruction)
 }
+
+// Fungsi untuk mencetak kalimat Alert
+func PrintAlert(alert string) {
+	color.New(color.FgHiRed, color.Bold).Printf("%s \n", alert)
+}
+
+// Fungsi untuk mencetak kalimat Info
+func PrintInfo(info string) {
+	color.New(color.FgHiGreen).Printf("%s \n", info)
+}

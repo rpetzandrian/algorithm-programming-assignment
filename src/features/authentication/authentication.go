@@ -161,3 +161,31 @@ func LogoutUser(currUser *entity.LoggedUser) {
 	currUser.Email = ""
 	currUser.Role = -1
 }
+
+func getUnverifiedUserList(userList entity.USER_LIST) (unverifiedUserList entity.USER_LIST) {
+	i := 0
+	for _, user := range userList {
+		if !user.IsVerified {
+			unverifiedUserList[i] = user
+			i++
+		}
+	}
+
+	return
+}
+
+func RetrieveUnverifiedUser(userList entity.USER_LIST) {
+	unverifiedUserList := getUnverifiedUserList(userList)
+
+	len := 0
+	for _, user := range unverifiedUserList {
+		if user.Id != 0 {
+			len++
+			fmt.Printf("UserId %d | Name: %s | Email: %s\n", user.Id, user.Name, user.Email)
+		}
+	}
+
+	if len == 0 {
+		fmt.Println("No unverified user")
+	}
+}
