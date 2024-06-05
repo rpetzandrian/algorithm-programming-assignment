@@ -1,19 +1,27 @@
 package authentication
 
-import "email-app/src/entity"
+import (
+	"email-app/src/entity"
+	"fmt"
+)
 
-func LoginUser(email string, password string, userList entity.USER_LIST) string {
+func LoginUser(email string, password string, userList entity.USER_LIST, currUser *entity.LoggedUser) (err bool, message string) {
 	user := getUserByEmail(email, userList)
 
 	if user == (entity.User{}) || !comparePassword(password, user.Password) {
-		return "Email or password is incorrect"
+		return true, "Email or password is incorrect"
 	}
 
 	if !user.IsVerified {
-		return "User is not verified"
+		return true, "User is not verified"
 	}
 
-	return "Login successful"
+	currUser.Id = user.Id
+	currUser.Name = user.Name
+	currUser.Email = user.Email
+	currUser.Role = 1
+
+	return false, "Login successful"
 }
 
 func getUserByEmail(email string, userList entity.USER_LIST) entity.User {
@@ -29,9 +37,9 @@ func comparePassword(password string, userPassword string) bool {
 	return password == userPassword
 }
 
-func RegisterUser(name string, email string, password string, userList *entity.USER_LIST) string {
+func RegisterUser(name string, email string, password string, userList *entity.USER_LIST) (err bool, message string) {
 	if getUserByEmail(email, *userList) != (entity.User{}) {
-		return "Email already registered"
+		return true, "Email already registered"
 	}
 
 	isFinished := false
@@ -53,20 +61,25 @@ func RegisterUser(name string, email string, password string, userList *entity.U
 	}
 
 	if !isFinished {
-		return "User list is full"
+		return true, "User list is full"
 	}
 
-	return "Registration successful"
+	return false, "Registration successful"
 }
 
-func LoginAsAdmin(email string, password string, adminList entity.USER_ADMIN_LIST) string {
+func LoginAsAdmin(email string, password string, adminList entity.USER_ADMIN_LIST, currUser *entity.LoggedUser) (err bool, message string) {
 	admin := getAdminByEmail(email, adminList)
 
 	if admin == (entity.UserAdmin{}) || !comparePassword(password, admin.Password) {
-		return "Email or password is incorrect"
+		return true, "Email or password is incorrect"
 	}
 
-	return "Login successful"
+	currUser.Id = admin.Id
+	currUser.Name = admin.Name
+	currUser.Email = admin.Email
+	currUser.Role = 0
+
+	return false, "Login successful"
 }
 
 func getAdminByEmail(email string, adminList entity.USER_ADMIN_LIST) entity.UserAdmin {
@@ -78,9 +91,9 @@ func getAdminByEmail(email string, adminList entity.USER_ADMIN_LIST) entity.User
 	return entity.UserAdmin{}
 }
 
-func RegisterAdmin(name string, email string, password string, adminList *entity.USER_ADMIN_LIST) string {
+func RegisterAdmin(name string, email string, password string, adminList *entity.USER_ADMIN_LIST) (err bool, message string) {
 	if getAdminByEmail(email, *adminList) != (entity.UserAdmin{}) {
-		return "Email already registered"
+		return true, "Email already registered"
 	}
 
 	isFinished := false
@@ -101,11 +114,10 @@ func RegisterAdmin(name string, email string, password string, adminList *entity
 	}
 
 	if !isFinished {
-		return "Admin list is full"
+		return true, "Admin list is full"
 	}
 
-	return "Registration successful"
-
+	return false, "Registration successful"
 }
 
 func VerifyUser(email string, userList *entity.USER_LIST) string {
@@ -118,4 +130,34 @@ func VerifyUser(email string, userList *entity.USER_LIST) string {
 	user.IsVerified = true
 
 	return "User verified"
+}
+
+func InputUserRegister() (name, email, password string) {
+	fmt.Println("Enter your name: ")
+	fmt.Scan(&name)
+
+	fmt.Println("Enter your email: ")
+	fmt.Scan(&email)
+
+	fmt.Println("Enter your password: ")
+	fmt.Scan(&password)
+
+	return
+}
+
+func InputUserLogin() (email, password string) {
+	fmt.Println("Enter your email: ")
+	fmt.Scan(&email)
+
+	fmt.Println("Enter your password: ")
+	fmt.Scan(&password)
+
+	return
+}
+
+func LogoutUser(currUser *entity.LoggedUser) {
+	currUser.Id = -1
+	currUser.Name = ""
+	currUser.Email = ""
+	currUser.Role = -1
 }

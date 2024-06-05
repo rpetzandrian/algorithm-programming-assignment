@@ -3,17 +3,28 @@ package menu
 import (
 	"email-app/src/decorative"
 	"email-app/src/entity"
+	"email-app/src/features/authentication"
 	"email-app/src/util"
 	"fmt"
 )
 
 var routes entity.USER_TYPE_LIST
-var userTypeIndex, routeIndex, choiceIndex int
+var userTypeIndex, routeIndex, choiceIndex, lastRouteIndex int
+
+var USERS entity.USER_LIST
+var ADMINS entity.USER_ADMIN_LIST
+var EMAILS entity.EMAIL_LIST
+var CurrentLogged entity.LoggedUser
 
 func InitRoutes() {
+	// Inisialisasi Route
 	userTypeIndex = -1
 	routeIndex = -1
 	choiceIndex = -1
+
+	// Inisialisasi data User
+	CurrentLogged = entity.LoggedUser{Id: -1, Name: "", Email: "", Role: -1}
+
 	routes[0] = entity.UserType{
 		UserType: "Admin",
 		RouteList: [10]entity.Route{
@@ -123,21 +134,82 @@ func InitRoutes() {
 				RouteId:   0,
 				RouteName: "User Auth Menu",
 				RouteFunc: func(choiceIndex *int) {
-
+					HeaderTemplate()
+					// Menambahkan menu user dan admin
+					decorative.PrintLine()
+					decorative.PrintTitle(" User Auth Menu ")
+					decorative.PrintDecorativeLine()
+					decorative.PrintMenu(1, "Register")
+					decorative.PrintMenu(2, "Login")
+					decorative.PrintMenu(3, "Back")
+					decorative.PrintDecorativeLine()
+					decorative.PrintInstruction(" Choose the number of the menu to continue ")
+					decorative.PrintBottomLine()
+					fmt.Scan(choiceIndex)
+					*choiceIndex -= 1
+					// Pilihan input nomor dari user dikurang 1 dan kita memanggil Menu untuk mengubah dan memanggil fungsi yang ada pada struct Choice
+					util.ClearScreen()
+					Menu()
 				},
 				ChoiceList: [4]entity.Choice{
 					{
 						ChoiceNumber: 1,
 						ChoiceText:   "Register",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							HeaderTemplate()
 
+							// Function to register user
+							loggedIn := CurrentLogged.Id != -1
+							finishRegister := false
+							for !loggedIn && !finishRegister {
+								name, email, password := authentication.InputUserRegister()
+								err, message := authentication.RegisterUser(name, email, password, &USERS)
+
+								if err {
+									fmt.Println(message)
+								} else {
+									fmt.Println(message)
+									finishRegister = true
+								}
+							}
+
+							fmt.Println("Waiting For Admin to approve Register Request")
+							fmt.Print("Press any key to Login Page")
+							var key string
+							fmt.Scan(&key)
+
+							*choiceIndex = 1
+							*routeIndex = 0
+
+							util.ClearScreen()
+							Menu()
 						},
 					},
 					{
 						ChoiceNumber: 2,
 						ChoiceText:   "Login",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							HeaderTemplate()
 
+							// Function to register user
+							loggedIn := CurrentLogged.Id != -1
+							for !loggedIn {
+								email, password := authentication.InputUserLogin()
+								err, message := authentication.LoginUser(email, password, USERS, &CurrentLogged)
+
+								if err {
+									fmt.Println(message)
+								} else {
+									fmt.Println(message)
+									loggedIn = true
+								}
+							}
+
+							*choiceIndex = -1
+							*routeIndex = 1
+
+							util.ClearScreen()
+							Menu()
 						},
 					},
 					{
@@ -153,7 +225,23 @@ func InitRoutes() {
 				RouteId:   1,
 				RouteName: "User Sub Menu",
 				RouteFunc: func(choiceIndex *int) {
-
+					HeaderUserMenu()
+					// Menambahkan menu user dan admin
+					decorative.PrintLine()
+					decorative.PrintTitle(" User Menu ")
+					decorative.PrintDecorativeLine()
+					decorative.PrintMenu(1, "Send Email")
+					decorative.PrintMenu(2, "Inbox")
+					decorative.PrintMenu(3, "Outbox")
+					decorative.PrintMenu(4, "Back")
+					decorative.PrintDecorativeLine()
+					decorative.PrintInstruction(" Choose the number of the menu to continue ")
+					decorative.PrintBottomLine()
+					fmt.Scan(choiceIndex)
+					*choiceIndex -= 1
+					// Pilihan input nomor dari user dikurang 1 dan kita memanggil Menu untuk mengubah dan memanggil fungsi yang ada pada struct Choice
+					util.ClearScreen()
+					Menu()
 				},
 				ChoiceList: [4]entity.Choice{
 					{
@@ -238,5 +326,11 @@ func HeaderTemplate() {
 	decorative.PrintEmptyLine()
 	decorative.PrintSubtitle(" Created by: ")
 	decorative.PrintAuthor(" Rico x Daffa ")
+	decorative.PrintBottomLine()
+}
+
+func HeaderUserMenu() {
+	decorative.PrintLine()
+	decorative.PrintSubtitle(" Welcome " + CurrentLogged.Name)
 	decorative.PrintBottomLine()
 }
