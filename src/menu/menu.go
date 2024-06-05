@@ -43,7 +43,9 @@ func InitRoutes() {
 					decorative.PrintDecorativeLine()
 					decorative.PrintInstruction(" Choose the number of the menu to continue ")
 					decorative.PrintBottomLine()
-					fmt.Scan(choiceIndex)
+
+					inputsMenus(3, choiceIndex)
+
 					*choiceIndex -= 1
 					// Pilihan input nomor dari user dikurang 1 dan kita memanggil Menu untuk mengubah dan memanggil fungsi yang ada pada struct Choice
 					util.ClearScreen()
@@ -54,13 +56,28 @@ func InitRoutes() {
 						ChoiceNumber: 1,
 						ChoiceText:   "Register",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							HeaderTemplate()
+							headerPage("Admin Register Page")
 
-							// Memberi nilai 0 pada userTypeIndex
-							*userTypeIndex = 0
-							// Memberi nilai 1 pada routeIndex untuk memanggil fungsi yang ada pada userTypeIndex 0 dan routeIndex 1
-							*routeIndex = 1
-							// Memberi nilai -1 pada choiceIndex, -1 diberikan karena user belum melakukan input pada halaman yang dituju
+							// Function to register user
+							loggedIn := CurrentLogged.Id != -1 && CurrentLogged.Role == 1 // check is user loggedin
+
+							for !loggedIn {
+								name, email, password := authentication.InputUserRegister()
+								err, message := authentication.RegisterAdmin(name, email, password, &ADMINS)
+
+								if err {
+									fmt.Println(message)
+								} else {
+									fmt.Println(message)
+									loggedIn = true
+								}
+							}
+
 							*choiceIndex = -1
+							*routeIndex = 1
+
+							util.ClearScreen()
 							Menu()
 						},
 					},
@@ -68,9 +85,27 @@ func InitRoutes() {
 						ChoiceNumber: 2,
 						ChoiceText:   "Login",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
-							*userTypeIndex = 0
-							*routeIndex = 1
+							HeaderTemplate()
+							headerPage("Admin Login Page")
+
+							// Function to login user
+							loggedIn := CurrentLogged.Id != -1
+							for !loggedIn {
+								email, password := authentication.InputUserLogin()
+								err, message := authentication.LoginAsAdmin(email, password, ADMINS, &CurrentLogged)
+
+								if err {
+									fmt.Println(message)
+								} else {
+									fmt.Println(message)
+									loggedIn = true
+								}
+							}
+
 							*choiceIndex = -1
+							*routeIndex = 1
+
+							util.ClearScreen()
 							Menu()
 						},
 					},
@@ -100,7 +135,9 @@ func InitRoutes() {
 					decorative.PrintDecorativeLine()
 					decorative.PrintInstruction(" Choose the number of the menu to continue ")
 					decorative.PrintBottomLine()
-					fmt.Scan(choiceIndex)
+
+					inputsMenus(2, choiceIndex)
+
 					*choiceIndex -= 1
 					util.ClearScreen()
 					Menu()
@@ -145,7 +182,9 @@ func InitRoutes() {
 					decorative.PrintDecorativeLine()
 					decorative.PrintInstruction(" Choose the number of the menu to continue ")
 					decorative.PrintBottomLine()
-					fmt.Scan(choiceIndex)
+
+					inputsMenus(3, choiceIndex)
+
 					*choiceIndex -= 1
 					// Pilihan input nomor dari user dikurang 1 dan kita memanggil Menu untuk mengubah dan memanggil fungsi yang ada pada struct Choice
 					util.ClearScreen()
@@ -157,9 +196,19 @@ func InitRoutes() {
 						ChoiceText:   "Register",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
 							HeaderTemplate()
+							headerPage("User Register Page")
 
 							// Function to register user
-							loggedIn := CurrentLogged.Id != -1
+							loggedIn := CurrentLogged.Id != -1 && CurrentLogged.Role == 1 // check is user loggedin
+
+							if loggedIn {
+								*choiceIndex = -1
+								*routeIndex = 1
+
+								util.ClearScreen()
+								Menu()
+							}
+
 							finishRegister := false
 							for !loggedIn && !finishRegister {
 								name, email, password := authentication.InputUserRegister()
@@ -190,8 +239,9 @@ func InitRoutes() {
 						ChoiceText:   "Login",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
 							HeaderTemplate()
+							headerPage("User Login Page")
 
-							// Function to register user
+							// Function to login user
 							loggedIn := CurrentLogged.Id != -1
 							for !loggedIn {
 								email, password := authentication.InputUserLogin()
@@ -279,7 +329,7 @@ func InitRoutes() {
 }
 
 func Menu() {
-	fmt.Printf("user type : %d route index : %d choice index : %d\n", userTypeIndex, routeIndex, choiceIndex)
+	fmt.Printf("user type : %d route index : %d choice index : %d\n", userTypeIndex, routeIndex, choiceIndex) // guide
 	if userTypeIndex != -1 && routeIndex != -1 {
 		if choiceIndex != -1 {
 			/* Jika user sudah memilih nomor input, maka akan menampilkan fungsi yang ada pada
@@ -309,7 +359,8 @@ func PrintStartMenu(userTypeIndex *int, routeIndex *int) {
 	decorative.PrintInstruction(" Choose the number of the menu to continue ")
 	decorative.PrintBottomLine()
 
-	fmt.Scan(userTypeIndex)
+	inputsMenus(2, userTypeIndex)
+
 	*userTypeIndex -= 1
 	*routeIndex = 0
 	util.ClearScreen()
@@ -333,4 +384,34 @@ func HeaderUserMenu() {
 	decorative.PrintLine()
 	decorative.PrintSubtitle(" Welcome " + CurrentLogged.Name)
 	decorative.PrintBottomLine()
+}
+
+func headerPage(page string) {
+	decorative.PrintLine()
+	decorative.PrintSubtitle(page)
+	decorative.PrintBottomLine()
+}
+
+func inputsMenus(menuMax int, input *int) {
+	fmt.Scan(input)
+
+	check := true
+	for check {
+		err := validateMenuInputs(menuMax, input)
+
+		if err {
+			fmt.Println("Enter correct input number: ")
+			fmt.Scan(input)
+		} else {
+			check = false
+		}
+	}
+}
+
+func validateMenuInputs(max int, input *int) (err bool) {
+	if *input < 1 || *input > max {
+		return true
+	}
+
+	return false
 }
