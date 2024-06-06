@@ -2,6 +2,7 @@ package emails
 
 import (
 	"bufio"
+	"email-app/src/decorative"
 	"email-app/src/entity"
 	"fmt"
 	"os"
@@ -58,4 +59,59 @@ func ReadEmail(fromEmail, toEmail string, emails *entity.EMAIL_LIST) {
 			emails[idx].IsRead = true
 		}
 	}
+}
+
+func RetrieveEmails(emails *entity.EMAIL_LIST, email string) (result entity.EMAIL_LIST) {
+	// get related email
+	var emailList entity.EMAIL_LIST
+	for i := 0; i < len(emails); i++ {
+		if emails[i].To == email || emails[i].From == email {
+			emailList[i] = emails[i]
+		}
+	}
+
+	// sort email list by timestamp
+	sortedEmailList := emailList
+	for i := 1; i < len(sortedEmailList); i++ {
+		j := i
+		for j > 0 && sortedEmailList[j-1].Timestamp < sortedEmailList[j].Timestamp {
+			sortedEmailList[j-1], sortedEmailList[j] = sortedEmailList[j], sortedEmailList[j-1]
+			j--
+		}
+	}
+
+	var user = make(map[string]bool)
+	for i := 0; i < len(sortedEmailList); i++ {
+		if sortedEmailList[i].From == email {
+			if !user[sortedEmailList[i].To] {
+				result[i] = sortedEmailList[i]
+				user[sortedEmailList[i].To] = true
+			}
+		} else {
+			if !user[sortedEmailList[i].From] {
+				result[i] = sortedEmailList[i]
+				user[sortedEmailList[i].From] = true
+			}
+		}
+	}
+
+	return
+}
+
+func ShowEmailList(emails entity.EMAIL_LIST) (counter int) {
+	fmt.Println("==============================================")
+	for i := 0; i < len(emails); i++ {
+		if emails[i] != (entity.Email{}) {
+			decorative.PrintInfo(fmt.Sprintf("No: %d ;; From: %s    To: %s", counter+1, emails[i].From, emails[i].To))
+			decorative.PrintWarning(fmt.Sprintf("Subject: %s", emails[i].Subject))
+			decorative.PrintText(fmt.Sprintf("Body: %s", emails[i].Body))
+			fmt.Println("==============================================")
+
+			counter++
+		}
+	}
+	decorative.PrintInfo("End of List. Input email number to see the detail")
+	fmt.Println("==============================================")
+
+	return
 }
