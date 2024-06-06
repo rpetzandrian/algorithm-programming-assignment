@@ -16,8 +16,10 @@ var USERS entity.USER_LIST
 var ADMINS entity.USER_ADMIN_LIST
 var EMAILS entity.EMAIL_LIST
 var CurrentLogged entity.LoggedUser
+var selectedEmailIdx entity.Email
 
 func InitRoutes() {
+
 	// Inisialisasi Route
 	userTypeIndex = -1 // 0 for admin 1 for user
 	routeIndex = -1    // menu
@@ -80,7 +82,7 @@ func InitRoutes() {
 							loggedIn := CurrentLogged.Id != -1 && CurrentLogged.Role == 1 // check is user loggedin
 
 							errorMessage := ""
-							for !loggedIn {
+							for !loggedIn && *userTypeIndex == 0 && *routeIndex == 0 && *choiceIndex == 0 {
 								decorative.PrintAlert(errorMessage)
 								decorative.PrintInfo(" Input instruction: ")
 
@@ -122,7 +124,7 @@ func InitRoutes() {
 							// Function to login user
 							loggedIn := CurrentLogged.Id != -1
 							errorMessage := ""
-							for !loggedIn {
+							for !loggedIn && *routeIndex == 0 && *choiceIndex == 1 && *userTypeIndex == 0 {
 								decorative.PrintAlert(errorMessage)
 								decorative.PrintInfo(" Input instruction: ")
 
@@ -285,7 +287,7 @@ func InitRoutes() {
 
 							finishRegister := false
 							errorMessage := ""
-							for !loggedIn && !finishRegister {
+							for !loggedIn && !finishRegister && *userTypeIndex == 1 && *routeIndex == 0 && *choiceIndex == 0 {
 								decorative.PrintAlert(errorMessage)
 								decorative.PrintInfo(" Input instruction: ")
 
@@ -332,7 +334,7 @@ func InitRoutes() {
 							// Function to login user
 							loggedIn := CurrentLogged.Id != -1
 							errorMessage := ""
-							for !loggedIn {
+							for !loggedIn && *routeIndex == 0 && *choiceIndex == 1 && *userTypeIndex == 1 {
 								decorative.PrintAlert(errorMessage)
 								decorative.PrintInfo(" Input instruction: ")
 
@@ -447,7 +449,7 @@ func InitRoutes() {
 							HeaderUserMenu()
 							headerPage("Inbox Page", true)
 
-							mail := emails.RetrieveEmails(&EMAILS, CurrentLogged.Email)
+							mail := emails.RetrieveEmails(EMAILS, CurrentLogged.Email)
 							totalIdx := emails.ShowEmailList(mail)
 
 							idx := 0
@@ -456,7 +458,9 @@ func InitRoutes() {
 							inputsMenus(totalIdx+1, &idx)
 
 							if idx != totalIdx+1 {
-								*choiceIndex = 2
+								selectedEmailIdx = mail[idx-1]
+
+								*choiceIndex = 3
 								util.ClearScreen()
 								Menu()
 							} else {
@@ -484,7 +488,25 @@ func InitRoutes() {
 						ChoiceNumber: 4,
 						ChoiceText:   "Email List",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							HeaderUserMenu()
+							headerPage("Email Page", true)
 
+							fmt.Println("Selected Email:  ", selectedEmailIdx)
+							list := emails.EmailList(selectedEmailIdx.From, selectedEmailIdx.To, EMAILS)
+							emails.ShowEmailList(list)
+
+							for *userTypeIndex == 1 && *routeIndex == 1 && *choiceIndex == 3 {
+								decorative.PrintInfo(" Input 1 to back: ")
+
+								var key int
+								inputsMenus(1, &key)
+								if key == 1 {
+									selectedEmailIdx = entity.Email{}
+									*choiceIndex = 1
+									util.ClearScreen()
+									Menu()
+								}
+							}
 						},
 					},
 				},

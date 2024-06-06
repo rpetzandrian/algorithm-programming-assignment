@@ -61,7 +61,7 @@ func ReadEmail(fromEmail, toEmail string, emails *entity.EMAIL_LIST) {
 	}
 }
 
-func RetrieveEmails(emails *entity.EMAIL_LIST, email string) (result entity.EMAIL_LIST) {
+func RetrieveEmails(emails entity.EMAIL_LIST, email string) (result entity.EMAIL_LIST) {
 	// get related email
 	var emailList entity.EMAIL_LIST
 	for i := 0; i < len(emails); i++ {
@@ -71,28 +71,55 @@ func RetrieveEmails(emails *entity.EMAIL_LIST, email string) (result entity.EMAI
 	}
 
 	// sort email list by timestamp
-	sortedEmailList := emailList
-	for i := 1; i < len(sortedEmailList); i++ {
-		j := i
-		for j > 0 && sortedEmailList[j-1].Timestamp < sortedEmailList[j].Timestamp {
-			sortedEmailList[j-1], sortedEmailList[j] = sortedEmailList[j], sortedEmailList[j-1]
-			j--
+	sortedEmailList := sortEmailByTimestamp(emailList)
+
+	var user = make(map[string]bool)
+	idx := 0
+	for i := 0; i < len(sortedEmailList); i++ {
+		if sortedEmailList[i] != (entity.Email{}) {
+			if sortedEmailList[i].From == email {
+				if !user[sortedEmailList[i].To] {
+					result[idx] = sortedEmailList[i]
+					user[sortedEmailList[i].To] = true
+					idx++
+				}
+			} else if sortedEmailList[i].To == email {
+				if !user[sortedEmailList[i].From] {
+					result[idx] = sortedEmailList[i]
+					user[sortedEmailList[i].From] = true
+					idx++
+				}
+			}
 		}
 	}
 
-	var user = make(map[string]bool)
-	for i := 0; i < len(sortedEmailList); i++ {
-		if sortedEmailList[i].From == email {
-			if !user[sortedEmailList[i].To] {
-				result[i] = sortedEmailList[i]
-				user[sortedEmailList[i].To] = true
-			}
-		} else {
-			if !user[sortedEmailList[i].From] {
-				result[i] = sortedEmailList[i]
-				user[sortedEmailList[i].From] = true
-			}
+	return
+}
+
+func EmailList(email1, email2 string, emails entity.EMAIL_LIST) (mails entity.EMAIL_LIST) {
+	var emailList entity.EMAIL_LIST
+	for i := 0; i < len(emails); i++ {
+		if emails[i].To == email1 && emails[i].From == email2 {
+			emailList[i] = emails[i]
+		} else if emails[i].To == email2 && emails[i].From == email1 {
+			emailList[i] = emails[i]
 		}
+	}
+
+	mails = sortEmailByTimestamp(emailList)
+	return
+}
+
+func sortEmailByTimestamp(emails entity.EMAIL_LIST) (sortedEmailList entity.EMAIL_LIST) {
+	sortedEmailList = emails
+	for i := 1; i < len(sortedEmailList); i++ {
+		key := sortedEmailList[i]
+		j := i - 1
+		for j >= 0 && sortedEmailList[j].Timestamp > key.Timestamp {
+			sortedEmailList[j+1] = sortedEmailList[j]
+			j = j - 1
+		}
+		sortedEmailList[j+1] = key
 	}
 
 	return
@@ -110,7 +137,7 @@ func ShowEmailList(emails entity.EMAIL_LIST) (counter int) {
 			counter++
 		}
 	}
-	decorative.PrintInfo("End of List. Input email number to see the detail")
+	decorative.PrintInfo("End of List.")
 	fmt.Println("==============================================")
 
 	return
