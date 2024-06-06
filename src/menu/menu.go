@@ -62,7 +62,21 @@ func InitRoutes() {
 							// Function to register user
 							loggedIn := CurrentLogged.Id != -1 && CurrentLogged.Role == 1 // check is user loggedin
 
+							errorMessage := ""
 							for !loggedIn {
+								decorative.PrintAlert(errorMessage)
+								decorative.PrintInfo(" Input instruction: ")
+
+								var key int
+								inputsMenus(2, &key)
+								if key == 2 {
+									*routeIndex = 0
+									*choiceIndex = -1
+
+									util.ClearScreen()
+									Menu()
+								}
+
 								name, email, password := authentication.InputUserRegister()
 								err, message := authentication.RegisterAdmin(name, email, password, &ADMINS)
 
@@ -90,7 +104,21 @@ func InitRoutes() {
 
 							// Function to login user
 							loggedIn := CurrentLogged.Id != -1
+							errorMessage := ""
 							for !loggedIn {
+								decorative.PrintAlert(errorMessage)
+								decorative.PrintInfo(" Input instruction: ")
+
+								var key int
+								inputsMenus(2, &key)
+								if key == 2 {
+									*routeIndex = 0
+									*choiceIndex = -1
+
+									util.ClearScreen()
+									Menu()
+								}
+
 								email, password := authentication.InputUserLogin()
 								err, message := authentication.LoginAsAdmin(email, password, ADMINS, &CurrentLogged)
 
@@ -123,14 +151,14 @@ func InitRoutes() {
 			},
 			{
 				RouteId:   1,
-				RouteName: "Admin Approval and Rejection Menu",
+				RouteName: "Admin Approval Menu",
 				RouteFunc: func(choiceIndex *int) {
 					HeaderTemplate()
 					// Menambahkan menu user dan admin
 					decorative.PrintLine()
-					decorative.PrintTitle(" Admin Approval and Rejection Menu ")
+					decorative.PrintTitle(" Admin Approval Menu ")
 					decorative.PrintDecorativeLine()
-					decorative.PrintMenu(1, "Approve/reject user")
+					decorative.PrintMenu(1, "Approve user")
 					decorative.PrintMenu(2, "Back")
 					decorative.PrintDecorativeLine()
 					decorative.PrintInstruction(" Choose the number of the menu to continue ")
@@ -145,13 +173,34 @@ func InitRoutes() {
 				ChoiceList: [4]entity.Choice{
 					{
 						ChoiceNumber: 1,
-						ChoiceText:   "Approve/reject user",
+						ChoiceText:   "Approve User",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
-							authentication.RetrieveUnverifiedUser(USERS)
+							HeaderTemplate()
+							headerPage("Approve User Page", true)
 
-							*choiceIndex = -1
-							util.ClearScreen()
-							Menu()
+							decorative.PrintWarning(" Input 0 to back: ")
+							decorative.PrintInfo(" List Unverified User")
+
+							id := 0
+							for *userTypeIndex == 0 && *routeIndex == 1 && *choiceIndex == 0 {
+								authentication.RetrieveUnverifiedUser(USERS)
+								fmt.Println("Enter user id to approve: ")
+								fmt.Scan(&id)
+
+								if id != 0 {
+									err, message := authentication.VerifyUser(id, &USERS)
+
+									if err {
+										decorative.PrintAlert(message)
+									} else {
+										decorative.PrintInfo(message)
+									}
+								} else {
+									*choiceIndex = -1
+									util.ClearScreen()
+									Menu()
+								}
+							}
 						},
 					},
 					{
@@ -214,7 +263,21 @@ func InitRoutes() {
 							}
 
 							finishRegister := false
+							errorMessage := ""
 							for !loggedIn && !finishRegister {
+								decorative.PrintAlert(errorMessage)
+								decorative.PrintInfo(" Input instruction: ")
+
+								var key int
+								inputsMenus(2, &key)
+								if key == 2 {
+									*routeIndex = 0
+									*choiceIndex = -1
+
+									util.ClearScreen()
+									Menu()
+								}
+
 								name, email, password := authentication.InputUserRegister()
 								err, message := authentication.RegisterUser(name, email, password, &USERS)
 
@@ -283,7 +346,11 @@ func InitRoutes() {
 						ChoiceNumber: 0,
 						ChoiceText:   "Back",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							*choiceIndex = -1
+							*routeIndex = -1
 
+							util.ClearScreen()
+							Menu()
 						},
 					},
 				},
@@ -405,13 +472,16 @@ func HeaderUserMenu() {
 	decorative.PrintBottomLine()
 }
 
-func headerPage(page string) {
+func headerPage(page string, opt ...bool) {
 	decorative.PrintLine()
 	decorative.PrintSubtitle(page)
-	decorative.PrintEmptyLine()
-	decorative.PrintInstruction(" Input number to continue:  ")
-	decorative.PrintInstruction(" Press 1 to continue ")
-	decorative.PrintInstruction(" Press 2 to back")
+
+	if len(opt) < 1 || (len(opt) > 0 && !opt[0]) {
+		decorative.PrintEmptyLine()
+		decorative.PrintInstruction(" Input number to continue:  ")
+		decorative.PrintInstruction(" Press 1 to continue ")
+		decorative.PrintInstruction(" Press 2 to back")
+	}
 	decorative.PrintBottomLine()
 }
 

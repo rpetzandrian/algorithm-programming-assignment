@@ -45,7 +45,7 @@ func RegisterUser(name string, email string, password string, userList *entity.U
 	isFinished := false
 	i := 0
 
-	for !isFinished || i < len(userList) {
+	for !isFinished {
 		if userList[i] == (entity.User{}) {
 			userList[i] = entity.User{
 				Id:         i + 1,
@@ -54,6 +54,10 @@ func RegisterUser(name string, email string, password string, userList *entity.U
 				Password:   password,
 				IsVerified: false,
 			}
+			isFinished = true
+		}
+
+		if i == len(userList)-1 {
 			isFinished = true
 		}
 
@@ -99,7 +103,7 @@ func RegisterAdmin(name string, email string, password string, adminList *entity
 	isFinished := false
 	i := 0
 
-	for !isFinished || i < len(adminList) {
+	for !isFinished {
 		if adminList[i] == (entity.UserAdmin{}) {
 			adminList[i] = entity.UserAdmin{
 				Id:       i + 1,
@@ -107,6 +111,10 @@ func RegisterAdmin(name string, email string, password string, adminList *entity
 				Email:    email,
 				Password: password,
 			}
+			isFinished = true
+		}
+
+		if i == len(adminList)-1 {
 			isFinished = true
 		}
 
@@ -120,16 +128,16 @@ func RegisterAdmin(name string, email string, password string, adminList *entity
 	return false, "Registration successful"
 }
 
-func VerifyUser(email string, userList *entity.USER_LIST) string {
-	user := getUserByEmail(email, *userList)
+func VerifyUser(id int, userList *entity.USER_LIST) (err bool, message string) {
+	user, idx := getUserById(id, *userList)
 
 	if user == (entity.User{}) {
-		return "User not found"
+		return true, "User not found"
 	}
 
-	user.IsVerified = true
+	userList[idx].IsVerified = true
 
-	return "User verified"
+	return false, "User verified successfully"
 }
 
 func InputUserRegister() (name, email, password string) {
@@ -188,4 +196,14 @@ func RetrieveUnverifiedUser(userList entity.USER_LIST) {
 	if len == 0 {
 		fmt.Println("No unverified user")
 	}
+}
+
+func getUserById(id int, userList entity.USER_LIST) (entity.User, int) {
+	for idx, user := range userList {
+		if user.Id == id {
+			return user, idx
+		}
+	}
+
+	return entity.User{}, -1
 }

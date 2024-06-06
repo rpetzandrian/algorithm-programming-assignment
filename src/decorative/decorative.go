@@ -58,3 +58,7 @@ func PrintAlert(alert string) {
 func PrintInfo(info string) {
 	color.New(color.FgHiGreen).Printf("%s \n", info)
 }
+
+func PrintWarning(warning string) {
+	color.New(color.FgHiYellow).Printf("%s \n", warning)
+}
