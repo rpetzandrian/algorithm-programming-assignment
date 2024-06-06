@@ -59,13 +59,10 @@ func RegisterUser(name string, email string, password string, userList *entity.U
 
 		if i == len(userList)-1 {
 			isFinished = true
+			return true, "User list is full"
 		}
 
 		i++
-	}
-
-	if !isFinished {
-		return true, "User list is full"
 	}
 
 	return false, "Registration successful"
@@ -116,13 +113,10 @@ func RegisterAdmin(name string, email string, password string, adminList *entity
 
 		if i == len(adminList)-1 {
 			isFinished = true
+			return true, "Admin list is full"
 		}
 
 		i++
-	}
-
-	if !isFinished {
-		return true, "Admin list is full"
 	}
 
 	return false, "Registration successful"

@@ -17,8 +17,9 @@ type UserAdmin struct {
 
 type Email struct {
 	Id        int
-	From      int
-	To        int
+	From      string
+	To        string
+	Subject   string
 	Body      string
 	IsRead    bool
 	Timestamp string

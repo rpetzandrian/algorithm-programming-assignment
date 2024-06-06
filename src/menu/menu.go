@@ -4,6 +4,7 @@ import (
 	"email-app/src/decorative"
 	"email-app/src/entity"
 	"email-app/src/features/authentication"
+	"email-app/src/features/emails"
 	"email-app/src/util"
 	"fmt"
 )
@@ -23,6 +24,8 @@ func InitRoutes() {
 	choiceIndex = -1   // sub menu
 
 	// Inisialisasi data User
+	USERS[0] = entity.User{Id: 1, Name: "test", Email: "test@test.com", Password: "12345", IsVerified: true}
+	ADMINS[0] = entity.UserAdmin{Id: 1, Name: "admin", Email: "admin@test.com", Password: "12345"}
 	CurrentLogged = entity.LoggedUser{Id: -1, Name: "", Email: "", Role: -1}
 
 	routes[0] = entity.UserType{
@@ -159,7 +162,7 @@ func InitRoutes() {
 					decorative.PrintTitle(" Admin Approval Menu ")
 					decorative.PrintDecorativeLine()
 					decorative.PrintMenu(1, "Approve user")
-					decorative.PrintMenu(2, "Back")
+					decorative.PrintMenu(2, "Logout")
 					decorative.PrintDecorativeLine()
 					decorative.PrintInstruction(" Choose the number of the menu to continue ")
 					decorative.PrintBottomLine()
@@ -175,7 +178,7 @@ func InitRoutes() {
 						ChoiceNumber: 1,
 						ChoiceText:   "Approve User",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
-							HeaderTemplate()
+							HeaderAdminMenu()
 							headerPage("Approve User Page", true)
 
 							decorative.PrintWarning(" Input 0 to back: ")
@@ -205,11 +208,15 @@ func InitRoutes() {
 					},
 					{
 						ChoiceNumber: 2,
-						ChoiceText:   "Back",
+						ChoiceText:   "Logout",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							authentication.LogoutUser(&CurrentLogged)
+
 							*userTypeIndex = 0
 							*routeIndex = 0
 							*choiceIndex = -1
+
+							util.ClearScreen()
 							Menu()
 						},
 					},
@@ -367,12 +374,12 @@ func InitRoutes() {
 					decorative.PrintMenu(1, "Send Email")
 					decorative.PrintMenu(2, "Inbox")
 					decorative.PrintMenu(3, "Outbox")
-					decorative.PrintMenu(4, "Back")
+					decorative.PrintMenu(4, "Logout")
 					decorative.PrintDecorativeLine()
 					decorative.PrintInstruction(" Choose the number of the menu to continue ")
 					decorative.PrintBottomLine()
 
-					inputsMenus(3, choiceIndex)
+					inputsMenus(4, choiceIndex)
 
 					*choiceIndex -= 1
 					// Pilihan input nomor dari user dikurang 1 dan kita memanggil Menu untuk mengubah dan memanggil fungsi yang ada pada struct Choice
@@ -384,7 +391,40 @@ func InitRoutes() {
 						ChoiceNumber: 1,
 						ChoiceText:   "Send email",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							HeaderUserMenu()
+							headerPage("Send Email Page")
 
+							errMessage := ""
+							successMessage := ""
+							for *userTypeIndex == 1 && *routeIndex == 1 && *choiceIndex == 0 {
+								decorative.PrintAlert(errMessage)
+								if successMessage != "" {
+									infoPage(successMessage)
+								}
+
+								decorative.PrintInfo(" Input instruction: ")
+
+								var key int
+								inputsMenus(2, &key)
+								if key == 2 {
+									*routeIndex = 1
+									*choiceIndex = -1
+
+									util.ClearScreen()
+									Menu()
+								}
+
+								to, subject, body := emails.WriteEmail(&CurrentLogged)
+								err, message := emails.SendEmail(CurrentLogged.Email, to, subject, body, &EMAILS)
+
+								if err {
+									errMessage = message
+								} else {
+									successMessage = message
+									util.ClearScreen()
+									Menu()
+								}
+							}
 						},
 					},
 					{
@@ -402,10 +442,17 @@ func InitRoutes() {
 						},
 					},
 					{
-						ChoiceNumber: 0,
-						ChoiceText:   "Back",
+						ChoiceNumber: 4,
+						ChoiceText:   "Logout",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							authentication.LogoutUser(&CurrentLogged)
 
+							*userTypeIndex = 1
+							*routeIndex = 0
+							*choiceIndex = -1
+
+							util.ClearScreen()
+							Menu()
 						},
 					},
 				},
@@ -469,6 +516,20 @@ func HeaderTemplate() {
 func HeaderUserMenu() {
 	decorative.PrintLine()
 	decorative.PrintSubtitle(" Welcome " + CurrentLogged.Name)
+	decorative.PrintBottomLine()
+
+	decorative.PrintLine()
+	decorative.PrintTitle(" User Dashboard ")
+	decorative.PrintBottomLine()
+}
+
+func HeaderAdminMenu() {
+	decorative.PrintLine()
+	decorative.PrintSubtitle(" Welcome " + CurrentLogged.Name)
+	decorative.PrintBottomLine()
+
+	decorative.PrintLine()
+	decorative.PrintTitle(" Admin Dashboard ")
 	decorative.PrintBottomLine()
 }
 
