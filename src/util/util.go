@@ -10,3 +10,9 @@ func ClearScreen() {
 	cmd.Stdout = os.Stdout
 	cmd.Run()
 }
+
+func CheckForExitInput(input string, nextStep func()) {
+	if input == "cancel" {
+		nextStep()
+	}
+}

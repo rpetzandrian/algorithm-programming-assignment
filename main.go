@@ -1,8 +1,6 @@
 package main
 
-import (
-	"email-app/src/menu"
-)
+import "email-app/src/menu"
 
 func main() {
 	menu.InitRoutes()

@@ -25,15 +25,13 @@ type Email struct {
 }
 
 type Choice struct {
-	ChoiceNumber int
-	ChoiceText   string
-	ChoiceFunc   func(userTypeIndex *int, routeIndex *int, choiceIndex *int)
+	ChoiceText string
+	ChoiceFunc func(userTypeIndex *int, routeIndex *int, choiceIndex *int)
 }
 
 type Route struct {
-	RouteId    int
 	RouteName  string
-	RouteFunc  func(choiceIndex *int)
+	RouteFunc  func(printStatus *string, printText *string, choiceIndex *int)
 	ChoiceList [4]Choice
 }
 
