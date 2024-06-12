@@ -12,14 +12,7 @@ func ClearScreen() {
 	cmd.Run()
 }
 
-// func Max[T comparable](a, b T) T {
-// 	if a > b {
-// 		return a
-// 	}
-// 	return b
-// }
-
-func CheckForExitInput[T any](input T, nextStep func()) {
+func CheckForExitInput[T string | int](input T, nextStep func()) {
 	switch strInput := any(input).(type) {
 	case string:
 		if strings.ToLower(strInput) == "cancel" {

@@ -261,20 +261,17 @@ func InitRoutes() {
 					{
 						ChoiceText: util.USER_AUTH_LOGIN_MENU,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
-
+							decorative.HeaderTemplate()
+							headerPage[string]("User Login Page")
 							isLoggedIn := false
 
 							for !isLoggedIn {
-
-								decorative.HeaderTemplate()
 
 								if printStatus == util.PRINT_STATUS_ERROR {
 									decorative.PrintStatus(printStatus, printText)
 								} else {
 									decorative.PrintNothing()
 								}
-
-								headerPage[string]("User Login Page")
 
 								email, password := authentication.InputUserLogin(func() {
 									navigateRoute(util.USER_AUTH_MENU, userTypeIndex, routeIndex, choiceIndex)
@@ -316,8 +313,7 @@ func InitRoutes() {
 					decorative.PrintDecorativeLine()
 					decorative.PrintMenu(1, "Send Email")
 					decorative.PrintMenu(2, "Inbox")
-					decorative.PrintMenu(3, "Outbox")
-					decorative.PrintMenu(4, "Log out")
+					decorative.PrintMenu(3, "Logout")
 					decorative.PrintDecorativeLine()
 					decorative.PrintInstruction(" Choose the number of the menu to continue ")
 					decorative.PrintBottomLine()
@@ -334,27 +330,22 @@ func InitRoutes() {
 						ChoiceText: util.USER_SUB_MENU_SEND_EMAIL,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
 							HeaderUserMenu()
-							headerPage[string]("Send Email Page")
+							headerPage[int]("Send Email Page")
 
 							errMessage := ""
 							successMessage := ""
 							for *userTypeIndex == 1 && *routeIndex == 1 && *choiceIndex == 0 {
+								decorative.ResetPrintStatus(&printStatus, &printText)
 								decorative.PrintAlert(errMessage)
 								if successMessage != "" {
 									decorative.InfoPage(successMessage)
 								}
 
-								decorative.PrintInfo(" Input instruction: ")
-
 								var key int
-								inputsMenus(2, &key)
-								if key == 2 {
-									*routeIndex = 1
-									*choiceIndex = -1
-
-									util.ClearScreen()
-									Menu()
-								}
+								inputsMenus(0, &key)
+								util.CheckForExitInput[int](key, func() {
+									navigateRoute(util.USER_SUB_MENU, userTypeIndex, routeIndex, choiceIndex)
+								})
 
 								to, subject, body := emails.WriteEmail(&CurrentLogged)
 								err, message := emails.SendEmail(CurrentLogged.Email, to, subject, body, &EMAILS)
@@ -372,64 +363,51 @@ func InitRoutes() {
 					{
 						ChoiceText: util.USER_SUB_MENU_INBOX,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							decorative.ResetPrintStatus(&printStatus, &printText)
 							HeaderUserMenu()
-							headerPage[string]("Inbox Page", true)
+							headerPage[int]("Inbox Page")
 
 							mail := emails.RetrieveEmails(EMAILS, CurrentLogged.Email)
 							totalIdx := emails.ShowEmailList(mail)
 
 							idx := 0
-							decorative.PrintWarning(fmt.Sprintf(" Input %d to back: ", totalIdx+1))
 							decorative.PrintInfo(" Input email number: ")
-							inputsMenus(totalIdx+1, &idx)
+							inputsMenus(totalIdx, &idx)
+							util.CheckForExitInput[int](idx, func() {
+								navigateRoute(util.USER_SUB_MENU, userTypeIndex, routeIndex, choiceIndex)
+							})
 
-							if idx != totalIdx+1 {
-								selectedEmailIdx = mail[idx-1]
+							selectedEmailIdx = mail[idx-1]
 
-								*choiceIndex = 3
-								util.ClearScreen()
-								Menu()
-							} else {
-								*choiceIndex = -1
-								util.ClearScreen()
-								Menu()
-							}
+							*choiceIndex = 3
+							util.ClearScreen()
+							Menu()
 						},
 					},
 					{
 						ChoiceText: util.LOGOUT,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
 							authentication.LogoutUser(&CurrentLogged)
-
-							*userTypeIndex = 1
-							*routeIndex = 0
-							*choiceIndex = -1
-
-							util.ClearScreen()
-							Menu()
+							navigateRoute(util.USER_AUTH_MENU, userTypeIndex, routeIndex, choiceIndex)
 						},
 					},
 					{
 						ChoiceText: util.USER_SUB_MENU_EMAIL_LIST,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							decorative.ResetPrintStatus(&printStatus, &printText)
 							HeaderUserMenu()
-							headerPage[string]("Email Page", true)
+							headerPage[int]("Email Page")
 
-							fmt.Println("Selected Email:  ", selectedEmailIdx)
+							fmt.Println("Selected Email:  ", selectedEmailIdx) // debug,.. need deleted
 							list := emails.EmailList(selectedEmailIdx.From, selectedEmailIdx.To, EMAILS)
 							emails.ShowEmailList(list)
 
 							for *userTypeIndex == 1 && *routeIndex == 1 && *choiceIndex == 3 {
-								decorative.PrintInfo(" Input 1 to back: ")
-
 								var key int
-								inputsMenus(1, &key)
-								if key == 1 {
-									selectedEmailIdx = entity.Email{}
-									*choiceIndex = 1
-									util.ClearScreen()
-									Menu()
-								}
+								inputsMenus(0, &key)
+								util.CheckForExitInput[int](key, func() {
+									navigateRoute(util.USER_SUB_MENU_INBOX, userTypeIndex, routeIndex, choiceIndex)
+								})
 							}
 						},
 					},
@@ -607,6 +585,10 @@ func inputsMenus(menuMax int, input *int) {
 	}
 }
 func validateMenuInputs(max int, input *int) (err bool) {
+	if *input == -1 {
+		return false
+	}
+
 	if *input < 1 || *input > max {
 		return true
 	}

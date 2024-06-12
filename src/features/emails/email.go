@@ -129,7 +129,9 @@ func ShowEmailList(emails entity.EMAIL_LIST) (counter int) {
 	fmt.Println("==============================================")
 	for i := 0; i < len(emails); i++ {
 		if emails[i] != (entity.Email{}) {
-			decorative.PrintInfo(fmt.Sprintf("No: %d ;; From: %s    To: %s", counter+1, emails[i].From, emails[i].To))
+			decorative.PrintInfo(fmt.Sprintf("No: %d :: %20s", i+1, emails[i].Timestamp))
+			decorative.PrintText(fmt.Sprintf("From: %s", emails[i].From))
+			decorative.PrintText(fmt.Sprintf("To: %s", emails[i].To))
 			decorative.PrintWarning(fmt.Sprintf("Subject: %s", emails[i].Subject))
 			decorative.PrintText(fmt.Sprintf("Body: %s", emails[i].Body))
 			fmt.Println("==============================================")
