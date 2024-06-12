@@ -4,6 +4,7 @@ import (
 	"email-app/src/decorative"
 	"email-app/src/entity"
 	"email-app/src/features/authentication"
+	"email-app/src/features/emails"
 	"email-app/src/util"
 	"fmt"
 )
@@ -17,23 +18,41 @@ var EMAILS entity.EMAIL_LIST
 var CurrentLogged entity.LoggedUser
 var printStatus string
 var printText string
+var selectedEmailIdx entity.Email
 
 func InitRoutes() {
+
 	// Inisialisasi Route
 	userTypeIndex = -1 // 0 for admin 1 for user
 	routeIndex = -1    // menu
 	choiceIndex = -1   // sub menu
 
 	// Inisialisasi data User
+	USERS[0] = entity.User{Id: 1, Name: "test", Email: "test@test.com", Password: "12345", IsVerified: true}
+	USERS[1] = entity.User{Id: 2, Name: "test2", Email: "test2@test.com", Password: "12345", IsVerified: true}
+	ADMINS[0] = entity.UserAdmin{Id: 1, Name: "admin", Email: "admin@test.com", Password: "12345"}
+	EMAILS[0] = entity.Email{Id: 1, From: "test@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 1", Body: "Ini test email saja. Jangan diubah dlu ya 1,.. hello world!", Timestamp: "2021-01-01 00:00:01"}
+	EMAILS[1] = entity.Email{Id: 2, From: "test2@test.com", To: "test3@test.com", IsRead: false, Subject: "test email 2", Body: "Ini test email saja. Jangan diubah dlu ya 2,.. hello world!", Timestamp: "2021-01-01 00:00:02"}
+	EMAILS[2] = entity.Email{Id: 3, From: "test2@test.com", To: "test@test.com", IsRead: false, Subject: "test email 3", Body: "Ini test email saja. Jangan diubah dlu ya 3,.. hello world!", Timestamp: "2021-01-01 00:00:03"}
+	EMAILS[3] = entity.Email{Id: 4, From: "test@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 4", Body: "Ini test email saja. Jangan diubah dlu ya 4,.. hello world!", Timestamp: "2021-01-01 00:00:04"}
+	EMAILS[4] = entity.Email{Id: 5, From: "test@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 5", Body: "Ini test email saja. Jangan diubah dlu ya 5,.. hello world!", Timestamp: "2021-01-01 00:00:05"}
+	EMAILS[5] = entity.Email{Id: 6, From: "test2@test.com", To: "test@test.com", IsRead: false, Subject: "test email 6", Body: "Ini test email saja. Jangan diubah dlu ya 6,.. hello world!", Timestamp: "2021-01-01 00:00:06"}
+	EMAILS[6] = entity.Email{Id: 7, From: "test3@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 7", Body: "Ini test email saja. Jangan diubah dlu ya 7,.. hello world!", Timestamp: "2021-01-01 00:00:07"}
+	EMAILS[7] = entity.Email{Id: 8, From: "test2@test.com", To: "test@test.com", IsRead: false, Subject: "test email 8", Body: "Ini test email saja. Jangan diubah dlu ya 8,.. hello world!", Timestamp: "2021-01-01 00:00:08"}
+	EMAILS[8] = entity.Email{Id: 9, From: "test@test.com", To: "test4@test.com", IsRead: false, Subject: "test email 9", Body: "Ini test email saja. Jangan diubah dlu ya 9,.. hello world!", Timestamp: "2021-01-01 00:00:09"}
+	EMAILS[9] = entity.Email{Id: 10, From: "test2@test.com", To: "test@test.com", IsRead: false, Subject: "test email 10", Body: "Ini test email saja. Jangan diubah dlu ya 10,.. hello world!", Timestamp: "2021-01-01 00:00:10"}
+	EMAILS[10] = entity.Email{Id: 11, From: "test@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 11", Body: "Ini test email saja. Jangan diubah dlu ya 11,.. hello world!", Timestamp: "2021-01-01 00:00:11"}
+	EMAILS[11] = entity.Email{Id: 12, From: "test3@test.com", To: "test@test.com", IsRead: false, Subject: "test email 12", Body: "Ini test email saja. Jangan diubah dlu ya 12,.. hello world!", Timestamp: "2021-01-01 00:00:12"}
+
 	CurrentLogged = entity.LoggedUser{Id: -1, Name: "", Email: "", Role: -1}
 
 	routes[0] = entity.UserType{
 		UserType: util.ADMIN_TYPE,
 		RouteList: [10]entity.Route{
 			{
-				RouteName: util.ADMIN_AUTH_MENU,
+				RouteName: "Admin Auth Menu",
 				RouteFunc: func(printStatus *string, printText *string, choiceIndex *int) {
-					decorative.HeaderTemplate()
+					HeaderTemplate()
 					// Menambahkan menu user dan admin
 					decorative.PrintLine()
 					decorative.PrintTitle(" Admin Auth Menu ")
@@ -126,10 +145,10 @@ func InitRoutes() {
 					decorative.HeaderTemplate()
 					// Menambahkan menu user dan admin
 					decorative.PrintLine()
-					decorative.PrintTitle(" Admin Approval and Rejection Menu ")
+					decorative.PrintTitle(" Admin Approval Menu ")
 					decorative.PrintDecorativeLine()
-					decorative.PrintMenu(1, "Approve/reject user")
-					decorative.PrintMenu(2, "Back")
+					decorative.PrintMenu(1, "Approve user")
+					decorative.PrintMenu(2, "Logout")
 					decorative.PrintDecorativeLine()
 					decorative.PrintInstruction(" Choose the number of the menu to continue ")
 					decorative.PrintBottomLine()
@@ -139,17 +158,47 @@ func InitRoutes() {
 				},
 				ChoiceList: [4]entity.Choice{
 					{
-						ChoiceText: "Approve/reject user",
+						ChoiceText: "Approve User",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
-							authentication.RetrieveUnverifiedUser(USERS)
+							HeaderAdminMenu()
+							headerPage("Approve User Page", true)
 
+							decorative.PrintWarning(" Input 0 to back: ")
+							decorative.PrintInfo(" List Unverified User")
+
+							id := 0
+							for *userTypeIndex == 0 && *routeIndex == 1 && *choiceIndex == 0 {
+								authentication.RetrieveUnverifiedUser(USERS)
+								fmt.Println("Enter user id to approve: ")
+								fmt.Scan(&id)
+
+								if id != 0 {
+									err, message := authentication.VerifyUser(id, &USERS)
+
+									if err {
+										decorative.PrintAlert(message)
+									} else {
+										decorative.PrintInfo(message)
+									}
+								} else {
+									*choiceIndex = -1
+									util.ClearScreen()
+									Menu()
+								}
+							}
 						},
 					},
 					{
-						ChoiceText: "Back",
+						ChoiceText: "Logout",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
-							decorative.ResetPrintStatus(&printStatus, &printText)
-							navigateRoute(util.ADMIN_AUTH_MENU, userTypeIndex, routeIndex, choiceIndex)
+							authentication.LogoutUser(&CurrentLogged)
+
+							*userTypeIndex = 0
+							*routeIndex = 0
+							*choiceIndex = -1
+
+							util.ClearScreen()
+							Menu()
 						},
 					},
 				},
@@ -284,26 +333,86 @@ func InitRoutes() {
 					{
 						ChoiceText: util.USER_SUB_MENU_SEND_EMAIL,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							HeaderUserMenu()
+							headerPage("Send Email Page")
 
+							errMessage := ""
+							successMessage := ""
+							for *userTypeIndex == 1 && *routeIndex == 1 && *choiceIndex == 0 {
+								decorative.PrintAlert(errMessage)
+								if successMessage != "" {
+									decorative.InfoPage(successMessage)
+								}
+
+								decorative.PrintInfo(" Input instruction: ")
+
+								var key int
+								inputsMenus(2, &key)
+								if key == 2 {
+									*routeIndex = 1
+									*choiceIndex = -1
+
+									util.ClearScreen()
+									Menu()
+								}
+
+								to, subject, body := emails.WriteEmail(&CurrentLogged)
+								err, message := emails.SendEmail(CurrentLogged.Email, to, subject, body, &EMAILS)
+
+								if err {
+									errMessage = message
+								} else {
+									successMessage = message
+									util.ClearScreen()
+									Menu()
+								}
+							}
 						},
 					},
 					{
 						ChoiceText: util.USER_SUB_MENU_INBOX,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							HeaderUserMenu()
+							headerPage("Inbox Page", true)
 
+							mail := emails.RetrieveEmails(EMAILS, CurrentLogged.Email)
+							totalIdx := emails.ShowEmailList(mail)
+
+							idx := 0
+							decorative.PrintWarning(fmt.Sprintf(" Input %d to back: ", totalIdx+1))
+							decorative.PrintInfo(" Input email number: ")
+							inputsMenus(totalIdx+1, &idx)
+
+							if idx != totalIdx+1 {
+								selectedEmailIdx = mail[idx-1]
+
+								*choiceIndex = 3
+								util.ClearScreen()
+								Menu()
+							} else {
+								*choiceIndex = -1
+								util.ClearScreen()
+								Menu()
+							}
 						},
 					},
 					{
-						ChoiceText: util.USER_SUB_MENU_OUTBOX,
+						ChoiceText: "Outbox",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							authentication.LogoutUser(&CurrentLogged)
 
+							*userTypeIndex = 1
+							*routeIndex = 0
+							*choiceIndex = -1
+
+							util.ClearScreen()
+							Menu()
 						},
 					},
 					{
-						ChoiceText: util.USER_SUB_MENU_LOGOUT,
+						ChoiceText: "Back",
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
-							decorative.ResetPrintStatus(&printStatus, &printText)
-							navigateRoute(util.USER_SUB_MENU, userTypeIndex, routeIndex, choiceIndex)
+
 						},
 					},
 				},
@@ -378,15 +487,39 @@ func PrintStartMenu(userTypeIndex *int, routeIndex *int) {
 	// Menambahkan pesan penutup dengan warna yang berbeda
 	// color.New(color.FgHiYellow, color.Bold).Println("\n🌟 Thanks for using this app! 🌟")
 }
+func HeaderTemplate() {
+	// Mencetak tampilan dengan dekorasi dan informasi proyek yang lebih menarik
+	decorative.PrintLine()
+	decorative.PrintTitle(" Alpro Assignment ")
+	decorative.PrintDecorativeLine()
+	decorative.PrintSubtitle(" EMAIL APP ")
+	decorative.PrintEmptyLine()
+	decorative.PrintSubtitle(" Created by: ")
+	decorative.PrintAuthor(" Rico x Daffa ")
+	decorative.PrintBottomLine()
+}
 
 func HeaderUserMenu() {
 	decorative.PrintLine()
 	decorative.PrintSubtitle(" Welcome " + CurrentLogged.Name)
 	decorative.PrintBottomLine()
+
+	decorative.PrintLine()
+	decorative.PrintTitle(" User Dashboard ")
+	decorative.PrintBottomLine()
+}
+
+func HeaderAdminMenu() {
+	decorative.PrintLine()
+	decorative.PrintSubtitle(" Welcome " + CurrentLogged.Name)
+	decorative.PrintBottomLine()
+
+	decorative.PrintLine()
+	decorative.PrintTitle(" Admin Dashboard ")
+	decorative.PrintBottomLine()
 }
 
 func headerPage(page string, opt ...bool) {
-
 	decorative.PrintLine()
 	decorative.PrintSubtitle(page)
 
@@ -415,6 +548,28 @@ func navigateInputIndex(menuMax int, inputIndex *int) {
 }
 func validateChoiceInput(max int, input *int) (status bool) {
 	if *input >= 1 && *input <= max {
+		return true
+	}
+
+	return false
+}
+func inputsMenus(menuMax int, input *int) {
+	fmt.Scan(input)
+
+	check := true
+	for check {
+		err := validateMenuInputs(menuMax, input)
+
+		if err {
+			fmt.Println("Enter correct input number: ")
+			fmt.Scan(input)
+		} else {
+			check = false
+		}
+	}
+}
+func validateMenuInputs(max int, input *int) (err bool) {
+	if *input < 1 || *input > max {
 		return true
 	}
 
