@@ -30,6 +30,7 @@ func InitRoutes() {
 	// Inisialisasi data User
 	USERS[0] = entity.User{Id: 1, Name: "test", Email: "test@test.com", Password: "12345", IsVerified: true}
 	USERS[1] = entity.User{Id: 2, Name: "test2", Email: "test2@test.com", Password: "12345", IsVerified: true}
+	USERS[2] = entity.User{Id: 2, Name: "test3", Email: "test3@test.com", Password: "12345", IsVerified: true}
 	ADMINS[0] = entity.UserAdmin{Id: 1, Name: "admin", Email: "admin@test.com", Password: "12345"}
 	EMAILS[0] = entity.Email{Id: 1, From: "test@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 1", Body: "Ini test email saja. Jangan diubah dlu ya 1,.. hello world!", Timestamp: "2021-01-01 00:00:01"}
 	EMAILS[1] = entity.Email{Id: 2, From: "test2@test.com", To: "test3@test.com", IsRead: false, Subject: "test email 2", Body: "Ini test email saja. Jangan diubah dlu ya 2,.. hello world!", Timestamp: "2021-01-01 00:00:02"}
@@ -330,34 +331,29 @@ func InitRoutes() {
 						ChoiceText: util.USER_SUB_MENU_SEND_EMAIL,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
 							HeaderUserMenu()
-							headerPage[int]("Send Email Page")
+							headerPage[string]("Send Email Page")
 
-							errMessage := ""
-							successMessage := ""
-							for *userTypeIndex == 1 && *routeIndex == 1 && *choiceIndex == 0 {
+							sent := false
+							for !sent {
 								decorative.ResetPrintStatus(&printStatus, &printText)
-								decorative.PrintAlert(errMessage)
-								if successMessage != "" {
-									decorative.InfoPage(successMessage)
-								}
-
-								var key int
-								inputsMenus(0, &key)
-								util.CheckForExitInput[int](key, func() {
+								to, subject, body := emails.WriteEmail(&CurrentLogged, func() {
 									navigateRoute(util.USER_SUB_MENU, userTypeIndex, routeIndex, choiceIndex)
 								})
-
-								to, subject, body := emails.WriteEmail(&CurrentLogged)
 								err, message := emails.SendEmail(CurrentLogged.Email, to, subject, body, &EMAILS)
 
 								if err {
-									errMessage = message
+									printStatus = util.PRINT_STATUS_ERROR
+									printText = message
 								} else {
-									successMessage = message
-									util.ClearScreen()
-									Menu()
+									printStatus = util.PRINT_STATUS_SUCCESS
+									printText = message
+									sent = true
 								}
+
+								decorative.PrintStatus(printStatus, printText)
 							}
+
+							navigateRoute(util.USER_SUB_MENU_SEND_EMAIL, userTypeIndex, routeIndex, choiceIndex)
 						},
 					},
 					{
@@ -380,7 +376,6 @@ func InitRoutes() {
 							selectedEmailIdx = mail[idx-1]
 
 							*choiceIndex = 3
-							util.ClearScreen()
 							Menu()
 						},
 					},

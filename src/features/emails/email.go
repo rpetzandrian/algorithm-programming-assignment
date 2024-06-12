@@ -4,22 +4,26 @@ import (
 	"bufio"
 	"email-app/src/decorative"
 	"email-app/src/entity"
+	"email-app/src/util"
 	"fmt"
 	"os"
 	"time"
 )
 
-func WriteEmail(currentUser *entity.LoggedUser) (to, subject, body string) {
+func WriteEmail(currentUser *entity.LoggedUser, nextStep func()) (to, subject, body string) {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("To :")
 	fmt.Scanln(&to)
+	util.CheckForExitInput[string](to, nextStep)
 
 	fmt.Println("Subject :")
 	subject, _ = reader.ReadString('\n')
+	util.CheckForExitInput[string](subject, nextStep)
 
 	fmt.Println("Body :")
 	body, _ = reader.ReadString('\n')
+	util.CheckForExitInput[string](body, nextStep)
 
 	return
 }
