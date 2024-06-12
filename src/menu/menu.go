@@ -16,6 +16,8 @@ var USERS entity.USER_LIST
 var ADMINS entity.USER_ADMIN_LIST
 var EMAILS entity.EMAIL_LIST
 var CurrentLogged entity.LoggedUser
+var printStatus string
+var printText string
 var selectedEmailIdx entity.Email
 
 func InitRoutes() {
@@ -45,13 +47,12 @@ func InitRoutes() {
 	CurrentLogged = entity.LoggedUser{Id: -1, Name: "", Email: "", Role: -1}
 
 	routes[0] = entity.UserType{
-		UserType: "Admin",
+		UserType: util.ADMIN_TYPE,
 		RouteList: [10]entity.Route{
 			{
-				RouteId:   0,
-				RouteName: "Admin Auth Menu",
-				RouteFunc: func(choiceIndex *int) {
-					SimpleHeaderTemplate()
+				RouteName: util.ADMIN_AUTH_MENU,
+				RouteFunc: func(printStatus *string, printText *string, choiceIndex *int) {
+					HeaderTemplate()
 					// Menambahkan menu user dan admin
 					decorative.PrintLine()
 					decorative.PrintTitle(" Admin Auth Menu ")
@@ -63,115 +64,83 @@ func InitRoutes() {
 					decorative.PrintInstruction(" Choose the number of the menu to continue ")
 					decorative.PrintBottomLine()
 
-					inputsMenus(3, choiceIndex)
+					navigateInputIndex(3, choiceIndex)
 
-					*choiceIndex -= 1
-					// Pilihan input nomor dari user dikurang 1 dan kita memanggil Menu untuk mengubah dan memanggil fungsi yang ada pada struct Choice
-					util.ClearScreen()
-					Menu()
 				},
 				ChoiceList: [4]entity.Choice{
 					{
-						ChoiceNumber: 1,
-						ChoiceText:   "Register",
+						ChoiceText: util.ADMIN_REGISTER_MENU,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
-							HeaderAuthMenu(*userTypeIndex)
-							headerPage("Admin Register Page")
+							decorative.HeaderTemplate()
+							headerPage[string]("Admin Register Page")
 
 							// Function to register user
 							loggedIn := CurrentLogged.Id != -1 && CurrentLogged.Role == 1 // check is user loggedin
 
-							errorMessage := ""
-							for !loggedIn && *userTypeIndex == 0 && *routeIndex == 0 && *choiceIndex == 0 {
-								decorative.PrintAlert(errorMessage)
-								decorative.PrintInfo(" Input instruction: ")
-
-								var key int
-								inputsMenus(2, &key)
-								if key == 2 {
-									*routeIndex = 0
-									*choiceIndex = -1
-
-									util.ClearScreen()
-									Menu()
-								}
-
-								name, email, password := authentication.InputUserRegister()
-								err, message := authentication.RegisterAdmin(name, email, password, &ADMINS)
+							for !loggedIn {
+								name, email, password := authentication.InputUserRegister(func() {
+									navigateRoute(util.ADMIN_AUTH_MENU, userTypeIndex, routeIndex, choiceIndex)
+								})
+								err, status := authentication.RegisterAdmin(name, email, password, &ADMINS)
 
 								if err {
-									fmt.Println(message)
+									printStatus = util.PRINT_STATUS_ERROR
+									printText = status
+									navigateRoute(util.ADMIN_AUTH_MENU, userTypeIndex, routeIndex, choiceIndex)
 								} else {
-									fmt.Println(message)
-									loggedIn = true
+									printStatus = util.PRINT_STATUS_SUCCESS
+									printText = status
 								}
+
+								decorative.PrintStatus(printStatus, printText)
 							}
 
-							*choiceIndex = -1
-							*routeIndex = 1
-
-							util.ClearScreen()
-							Menu()
+							decorative.PrintText("Press any key to navigate to login page: ")
+							var key int
+							fmt.Scan(&key)
+							navigateRoute(util.ADMIN_LOGIN_MENU, userTypeIndex, routeIndex, choiceIndex)
 						},
 					},
 					{
-						ChoiceNumber: 2,
-						ChoiceText:   "Login",
+						ChoiceText: util.ADMIN_LOGIN_MENU,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
-							HeaderAuthMenu(*userTypeIndex)
-							headerPage("Admin Login Page")
+							decorative.HeaderTemplate()
+							headerPage[string]("Admin Login Page")
 
 							// Function to login user
 							loggedIn := CurrentLogged.Id != -1
-							errorMessage := ""
-							for !loggedIn && *routeIndex == 0 && *choiceIndex == 1 && *userTypeIndex == 0 {
-								decorative.PrintAlert(errorMessage)
-								decorative.PrintInfo(" Input instruction: ")
-
-								var key int
-								inputsMenus(2, &key)
-								if key == 2 {
-									*routeIndex = 0
-									*choiceIndex = -1
-
-									util.ClearScreen()
-									Menu()
-								}
-
-								email, password := authentication.InputUserLogin()
+							for !loggedIn {
+								decorative.ResetPrintStatus(&printStatus, &printText)
+								email, password := authentication.InputUserLogin(func() {
+									navigateRoute(util.ADMIN_AUTH_MENU, userTypeIndex, routeIndex, choiceIndex)
+								})
 								err, message := authentication.LoginAsAdmin(email, password, ADMINS, &CurrentLogged)
 
 								if err {
-									fmt.Println(message)
+									printStatus = util.PRINT_STATUS_ERROR
+									printText = message
 								} else {
-									fmt.Println(message)
 									loggedIn = true
 								}
+
+								decorative.PrintStatus(printStatus, printText)
 							}
 
-							*choiceIndex = -1
-							*routeIndex = 1
-
-							util.ClearScreen()
-							Menu()
+							navigateRoute(util.ADMIN_APPROVAL_MENU, userTypeIndex, routeIndex, choiceIndex)
 						},
 					},
 					{
-						ChoiceNumber: 3,
-						ChoiceText:   "Back",
+						ChoiceText: util.ADMIN_AUTH_MENU_BACK,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
-							*userTypeIndex = -1
-							*routeIndex = -1
-							*choiceIndex = -1
-							Menu()
+							decorative.ResetPrintStatus(&printStatus, &printText)
+							navigateRoute(util.ADMIN_TYPE, userTypeIndex, routeIndex, choiceIndex)
 						},
 					},
 				},
 			},
 			{
-				RouteId:   1,
-				RouteName: "Admin Approval Menu",
-				RouteFunc: func(choiceIndex *int) {
+				RouteName: util.ADMIN_APPROVAL_MENU,
+				RouteFunc: func(printStatus *string, printText *string, choiceIndex *int) {
 					HeaderTemplate()
 					// Menambahkan menu user dan admin
 					decorative.PrintLine()
@@ -183,21 +152,16 @@ func InitRoutes() {
 					decorative.PrintInstruction(" Choose the number of the menu to continue ")
 					decorative.PrintBottomLine()
 
-					inputsMenus(2, choiceIndex)
+					navigateInputIndex(2, choiceIndex)
 
-					*choiceIndex -= 1
-					util.ClearScreen()
-					Menu()
 				},
 				ChoiceList: [4]entity.Choice{
 					{
-						ChoiceNumber: 1,
-						ChoiceText:   "Approve User",
+						ChoiceText: util.ADMIN_APPROVE_MENU,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
 							HeaderAdminMenu()
-							headerPage("Approve User Page", true)
+							headerPage[int]("Approve User Page")
 
-							decorative.PrintWarning(" Input 0 to back: ")
 							decorative.PrintInfo(" List Unverified User")
 
 							id := 0
@@ -206,34 +170,27 @@ func InitRoutes() {
 								fmt.Println("Enter user id to approve: ")
 								fmt.Scan(&id)
 
-								if id != 0 {
-									err, message := authentication.VerifyUser(id, &USERS)
+								util.CheckForExitInput[int](id, func() {
+									navigateRoute(util.ADMIN_APPROVAL_MENU, userTypeIndex, routeIndex, choiceIndex)
+								})
 
-									if err {
-										decorative.PrintAlert(message)
-									} else {
-										decorative.PrintInfo(message)
-									}
+								err, message := authentication.VerifyUser(id, &USERS)
+
+								if err {
+									decorative.PrintAlert(message)
 								} else {
-									*choiceIndex = -1
-									util.ClearScreen()
-									Menu()
+									decorative.PrintInfo(message)
 								}
+
 							}
 						},
 					},
 					{
-						ChoiceNumber: 2,
-						ChoiceText:   "Logout",
+						ChoiceText: util.LOGOUT,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
 							authentication.LogoutUser(&CurrentLogged)
 
-							*userTypeIndex = 0
-							*routeIndex = 0
-							*choiceIndex = -1
-
-							util.ClearScreen()
-							Menu()
+							navigateRoute(util.ADMIN_AUTH_MENU, userTypeIndex, routeIndex, choiceIndex)
 						},
 					},
 				},
@@ -241,14 +198,18 @@ func InitRoutes() {
 		},
 	}
 	routes[1] = entity.UserType{
-		UserType: "User",
+		UserType: util.USER_TYPE,
 		RouteList: [10]entity.Route{
 			{
-				RouteId:   0,
-				RouteName: "User Auth Menu",
-				RouteFunc: func(choiceIndex *int) {
-					SimpleHeaderTemplate()
+				RouteName: util.USER_AUTH_MENU,
+				RouteFunc: func(printStatus *string, printText *string, hoiceIndex *int) {
+					decorative.HeaderTemplate()
 					// Menambahkan menu user dan admin
+					if *printStatus == util.PRINT_STATUS_ERROR {
+						decorative.PrintStatus(*printStatus, *printText)
+					} else if *printStatus == util.PRINT_STATUS_NOTHING {
+						decorative.PrintNothing()
+					}
 					decorative.PrintLine()
 					decorative.PrintTitle(" User Auth Menu ")
 					decorative.PrintDecorativeLine()
@@ -259,142 +220,109 @@ func InitRoutes() {
 					decorative.PrintInstruction(" Choose the number of the menu to continue ")
 					decorative.PrintBottomLine()
 
-					inputsMenus(3, choiceIndex)
-
-					*choiceIndex -= 1
-					// Pilihan input nomor dari user dikurang 1 dan kita memanggil Menu untuk mengubah dan memanggil fungsi yang ada pada struct Choice
-					util.ClearScreen()
-					Menu()
+					navigateInputIndex(3, &choiceIndex)
 				},
 				ChoiceList: [4]entity.Choice{
 					{
-						ChoiceNumber: 1,
-						ChoiceText:   "Register",
+						ChoiceText: util.USER_AUTH_REGISTER_MENU,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
-							HeaderAuthMenu(*userTypeIndex)
-							headerPage("User Register Page")
-
-							// Function to register user
-							loggedIn := CurrentLogged.Id != -1 && CurrentLogged.Role == 1 // check is user loggedin
-
-							if loggedIn {
-								*choiceIndex = -1
-								*routeIndex = 1
-
-								util.ClearScreen()
-								Menu()
-							}
+							decorative.HeaderTemplate()
+							headerPage[string]("User Register Page")
 
 							finishRegister := false
-							errorMessage := ""
-							for !loggedIn && !finishRegister && *userTypeIndex == 1 && *routeIndex == 0 && *choiceIndex == 0 {
-								decorative.PrintAlert(errorMessage)
-								decorative.PrintInfo(" Input instruction: ")
 
-								var key int
-								inputsMenus(2, &key)
-								if key == 2 {
-									*routeIndex = 0
-									*choiceIndex = -1
-
-									util.ClearScreen()
-									Menu()
-								}
-
-								name, email, password := authentication.InputUserRegister()
-								err, message := authentication.RegisterUser(name, email, password, &USERS)
+							for !finishRegister {
+								name, email, password := authentication.InputUserRegister(func() {
+									decorative.ResetPrintStatus(&printStatus, &printText)
+									navigateRoute(util.USER_AUTH_MENU, userTypeIndex, routeIndex, choiceIndex)
+								})
+								err, status := authentication.RegisterUser(name, email, password, &USERS)
 
 								if err {
-									fmt.Println(message)
+									printStatus = util.PRINT_STATUS_ERROR
+									printText = status
+									navigateRoute(util.USER_AUTH_MENU, userTypeIndex, routeIndex, choiceIndex)
 								} else {
-									fmt.Println(message)
 									finishRegister = true
+									printStatus = util.PRINT_STATUS_SUCCESS
+									printText = status
 								}
+
+								decorative.PrintStatus(printStatus, printText)
 							}
 
-							fmt.Println("Waiting For Admin to approve Register Request")
-							fmt.Print("Press any key to Login Page")
-							var key string
+							decorative.PrintText("input any key:")
+							var key int
 							fmt.Scan(&key)
 
-							*choiceIndex = 1
-							*routeIndex = 0
-
-							util.ClearScreen()
-							Menu()
+							navigateRoute(util.USER_AUTH_LOGIN_MENU, userTypeIndex, routeIndex, choiceIndex)
 						},
 					},
 					{
-						ChoiceNumber: 2,
-						ChoiceText:   "Login",
+						ChoiceText: util.USER_AUTH_LOGIN_MENU,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
-							HeaderAuthMenu(*userTypeIndex)
-							headerPage("User Login Page")
 
-							// Function to login user
-							loggedIn := CurrentLogged.Id != -1
-							errorMessage := ""
-							for !loggedIn && *routeIndex == 0 && *choiceIndex == 1 && *userTypeIndex == 1 {
-								decorative.PrintAlert(errorMessage)
-								decorative.PrintInfo(" Input instruction: ")
+							isLoggedIn := false
 
-								var key int
-								inputsMenus(2, &key)
-								if key == 2 {
-									*routeIndex = 0
-									*choiceIndex = -1
+							for !isLoggedIn {
 
-									util.ClearScreen()
-									Menu()
+								decorative.HeaderTemplate()
+
+								if printStatus == util.PRINT_STATUS_ERROR {
+									decorative.PrintStatus(printStatus, printText)
+								} else {
+									decorative.PrintNothing()
 								}
 
-								email, password := authentication.InputUserLogin()
-								err, message := authentication.LoginUser(email, password, USERS, &CurrentLogged)
+								headerPage[string]("User Login Page")
+
+								email, password := authentication.InputUserLogin(func() {
+									navigateRoute(util.USER_AUTH_MENU, userTypeIndex, routeIndex, choiceIndex)
+								})
+								err, status := authentication.LoginUser(email, password, USERS, &CurrentLogged)
+
+								printText = status
 
 								if err {
-									errorMessage = message
+									printStatus = util.PRINT_STATUS_ERROR
+									util.ClearScreen()
 								} else {
-									loggedIn = true
+									isLoggedIn = true
+									printStatus = util.PRINT_STATUS_SUCCESS
+									navigateRoute(util.USER_SUB_MENU, userTypeIndex, routeIndex, choiceIndex)
 								}
 							}
-
-							*choiceIndex = -1
-							*routeIndex = 1
-
-							util.ClearScreen()
-							Menu()
 						},
 					},
 					{
-						ChoiceNumber: 0,
-						ChoiceText:   "Back",
+						ChoiceText: util.USER_AUTH_BACK_MENU,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
-							*choiceIndex = -1
-							*routeIndex = -1
-
-							util.ClearScreen()
-							Menu()
+							decorative.ResetPrintStatus(&printStatus, &printText)
+							navigateRoute(util.ADMIN_TYPE, userTypeIndex, routeIndex, choiceIndex)
 						},
 					},
 				},
 			},
 			{
-				RouteId:   1,
-				RouteName: "User Sub Menu",
-				RouteFunc: func(choiceIndex *int) {
+				RouteName: util.USER_SUB_MENU,
+				RouteFunc: func(printStatus *string, printText *string, choiceIndex *int) {
 					HeaderUserMenu()
 					// Menambahkan menu user dan admin
+					if *printStatus == util.PRINT_STATUS_SUCCESS {
+						decorative.PrintStatus(*printStatus, *printText)
+					}
 					decorative.PrintLine()
 					decorative.PrintTitle(" User Menu ")
 					decorative.PrintDecorativeLine()
 					decorative.PrintMenu(1, "Send Email")
 					decorative.PrintMenu(2, "Inbox")
-					decorative.PrintMenu(3, "Logout")
+					decorative.PrintMenu(3, "Outbox")
+					decorative.PrintMenu(4, "Log out")
 					decorative.PrintDecorativeLine()
 					decorative.PrintInstruction(" Choose the number of the menu to continue ")
 					decorative.PrintBottomLine()
 
-					inputsMenus(3, choiceIndex)
+					navigateInputIndex(3, choiceIndex)
 
 					*choiceIndex -= 1
 					// Pilihan input nomor dari user dikurang 1 dan kita memanggil Menu untuk mengubah dan memanggil fungsi yang ada pada struct Choice
@@ -403,18 +331,17 @@ func InitRoutes() {
 				},
 				ChoiceList: [4]entity.Choice{
 					{
-						ChoiceNumber: 1,
-						ChoiceText:   "Send email",
+						ChoiceText: util.USER_SUB_MENU_SEND_EMAIL,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
 							HeaderUserMenu()
-							headerPage("Send Email Page")
+							headerPage[string]("Send Email Page")
 
 							errMessage := ""
 							successMessage := ""
 							for *userTypeIndex == 1 && *routeIndex == 1 && *choiceIndex == 0 {
 								decorative.PrintAlert(errMessage)
 								if successMessage != "" {
-									infoPage(successMessage)
+									decorative.InfoPage(successMessage)
 								}
 
 								decorative.PrintInfo(" Input instruction: ")
@@ -443,11 +370,10 @@ func InitRoutes() {
 						},
 					},
 					{
-						ChoiceNumber: 2,
-						ChoiceText:   "Inbox",
+						ChoiceText: util.USER_SUB_MENU_INBOX,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
 							HeaderUserMenu()
-							headerPage("Inbox Page", true)
+							headerPage[string]("Inbox Page", true)
 
 							mail := emails.RetrieveEmails(EMAILS, CurrentLogged.Email)
 							totalIdx := emails.ShowEmailList(mail)
@@ -471,8 +397,7 @@ func InitRoutes() {
 						},
 					},
 					{
-						ChoiceNumber: 3,
-						ChoiceText:   "Logout",
+						ChoiceText: util.LOGOUT,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
 							authentication.LogoutUser(&CurrentLogged)
 
@@ -485,11 +410,10 @@ func InitRoutes() {
 						},
 					},
 					{
-						ChoiceNumber: 4,
-						ChoiceText:   "Email List",
+						ChoiceText: util.USER_SUB_MENU_EMAIL_LIST,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
 							HeaderUserMenu()
-							headerPage("Email Page", true)
+							headerPage[string]("Email Page", true)
 
 							fmt.Println("Selected Email:  ", selectedEmailIdx)
 							list := emails.EmailList(selectedEmailIdx.From, selectedEmailIdx.To, EMAILS)
@@ -515,8 +439,31 @@ func InitRoutes() {
 	}
 }
 
-func Menu(opts ...interface{}) {
-	fmt.Printf("user type : %d route index : %d choice index : %d\n", userTypeIndex, routeIndex, choiceIndex) // guide
+func navigateRoute(name string, userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+	if name == util.ADMIN_TYPE || name == util.USER_TYPE {
+		if name == util.ADMIN_TYPE {
+			*userTypeIndex = -1
+			*routeIndex = -1
+			*choiceIndex = -1
+			Menu()
+		}
+		if name == util.USER_TYPE {
+			*userTypeIndex = -1
+			*routeIndex = -0
+			*choiceIndex = -1
+			Menu()
+		}
+	} else {
+		menuConfig := util.GetMenuConfig(name)
+		*userTypeIndex = menuConfig.UserTypeIdx
+		*routeIndex = menuConfig.RouteIdx
+		*choiceIndex = menuConfig.ChoiceIdx
+		Menu()
+	}
+}
+
+func Menu() {
+	util.ClearScreen()
 	if userTypeIndex != -1 && routeIndex != -1 {
 		if choiceIndex != -1 {
 			/* Jika user sudah memilih nomor input, maka akan menampilkan fungsi yang ada pada
@@ -525,7 +472,7 @@ func Menu(opts ...interface{}) {
 		} else {
 			/* Jika user belum memilih nomor input, maka akan menampilkan fungsi yang ada pada
 			struct Route yaitu RouteFunc untuk memberikan pilihan kepada user*/
-			routes[userTypeIndex].RouteList[routeIndex].RouteFunc(&choiceIndex)
+			routes[userTypeIndex].RouteList[routeIndex].RouteFunc(&printStatus, &printText, &choiceIndex)
 		}
 	} else {
 		PrintStartMenu(&userTypeIndex, &routeIndex)
@@ -534,7 +481,7 @@ func Menu(opts ...interface{}) {
 
 func PrintStartMenu(userTypeIndex *int, routeIndex *int) {
 
-	HeaderTemplate()
+	decorative.HeaderTemplate()
 
 	// Menambahkan menu user dan admin
 	decorative.PrintLine()
@@ -546,12 +493,9 @@ func PrintStartMenu(userTypeIndex *int, routeIndex *int) {
 	decorative.PrintInstruction(" Choose the number of the menu to continue ")
 	decorative.PrintBottomLine()
 
-	inputsMenus(2, userTypeIndex)
-
-	*userTypeIndex -= 1
 	*routeIndex = 0
-	util.ClearScreen()
-	Menu()
+	navigateInputIndex(2, userTypeIndex)
+
 	// Menambahkan pesan penutup dengan warna yang berbeda
 	// color.New(color.FgHiYellow, color.Bold).Println("\n🌟 Thanks for using this app! 🌟")
 }
@@ -606,19 +550,47 @@ func HeaderAdminMenu() {
 	decorative.PrintBottomLine()
 }
 
-func headerPage(page string, opt ...bool) {
+func headerPage[T any](page string, opt ...bool) {
 	decorative.PrintLine()
 	decorative.PrintSubtitle(page)
 
+	var input T
+
 	if len(opt) < 1 || (len(opt) > 0 && !opt[0]) {
 		decorative.PrintEmptyLine()
-		decorative.PrintInstruction(" Input number to continue:  ")
-		decorative.PrintInstruction(" Press 1 to continue ")
-		decorative.PrintInstruction(" Press 2 to back")
+		switch any(input).(type) {
+		case string:
+			decorative.PrintInstruction("Type cancel and press enter to back....")
+		case int:
+			decorative.PrintInstruction("Type -1 and press enter to back....")
+		}
 	}
 	decorative.PrintBottomLine()
 }
 
+func navigateInputIndex(menuMax int, inputIndex *int) {
+	valid := false
+
+	for !valid {
+		fmt.Print("Enter input number: ")
+		fmt.Scan(inputIndex)
+		status := validateChoiceInput(menuMax, inputIndex)
+
+		if status {
+			valid = true
+		}
+	}
+	fmt.Println(*inputIndex)
+	*inputIndex -= 1
+	Menu()
+}
+func validateChoiceInput(max int, input *int) (status bool) {
+	if *input >= 1 && *input <= max {
+		return true
+	}
+
+	return false
+}
 func inputsMenus(menuMax int, input *int) {
 	fmt.Scan(input)
 
@@ -634,17 +606,10 @@ func inputsMenus(menuMax int, input *int) {
 		}
 	}
 }
-
 func validateMenuInputs(max int, input *int) (err bool) {
 	if *input < 1 || *input > max {
 		return true
 	}
 
 	return false
-}
-
-func infoPage(info string) {
-	decorative.PrintLine()
-	decorative.PrintSubtitle(info)
-	decorative.PrintBottomLine()
 }

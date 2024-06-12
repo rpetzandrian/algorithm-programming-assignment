@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"email-app/src/entity"
+	"email-app/src/util"
 	"fmt"
 )
 
@@ -37,7 +38,7 @@ func comparePassword(password string, userPassword string) bool {
 	return password == userPassword
 }
 
-func RegisterUser(name string, email string, password string, userList *entity.USER_LIST) (err bool, message string) {
+func RegisterUser(name string, email string, password string, userList *entity.USER_LIST) (err bool, status string) {
 	if getUserByEmail(email, *userList) != (entity.User{}) {
 		return true, "Email already registered"
 	}
@@ -64,8 +65,7 @@ func RegisterUser(name string, email string, password string, userList *entity.U
 
 		i++
 	}
-
-	return false, "Registration successful"
+	return false, fmt.Sprintf("%s Registration successful, please wait for admin approval", email)
 }
 
 func LoginAsAdmin(email string, password string, adminList entity.USER_ADMIN_LIST, currUser *entity.LoggedUser) (err bool, message string) {
@@ -92,8 +92,9 @@ func getAdminByEmail(email string, adminList entity.USER_ADMIN_LIST) entity.User
 	return entity.UserAdmin{}
 }
 
-func RegisterAdmin(name string, email string, password string, adminList *entity.USER_ADMIN_LIST) (err bool, message string) {
+func RegisterAdmin(name string, email string, password string, adminList *entity.USER_ADMIN_LIST) (err bool, status string) {
 	if getAdminByEmail(email, *adminList) != (entity.UserAdmin{}) {
+
 		return true, "Email already registered"
 	}
 
@@ -118,14 +119,13 @@ func RegisterAdmin(name string, email string, password string, adminList *entity
 
 		i++
 	}
-
 	return false, "Registration successful"
 }
 
 func VerifyUser(id int, userList *entity.USER_LIST) (err bool, message string) {
 	user, idx := getUserById(id, *userList)
 
-	if user == (entity.User{}) {
+	if user == (entity.User{}) || user.IsVerified {
 		return true, "User not found"
 	}
 
@@ -134,25 +134,30 @@ func VerifyUser(id int, userList *entity.USER_LIST) (err bool, message string) {
 	return false, "User verified successfully"
 }
 
-func InputUserRegister() (name, email, password string) {
+func InputUserRegister(nextStep func()) (name, email, password string) {
 	fmt.Println("Enter your name: ")
 	fmt.Scan(&name)
+	util.CheckForExitInput[string](name, nextStep)
 
 	fmt.Println("Enter your email: ")
 	fmt.Scan(&email)
+	util.CheckForExitInput[string](email, nextStep)
 
 	fmt.Println("Enter your password: ")
 	fmt.Scan(&password)
+	util.CheckForExitInput[string](password, nextStep)
 
 	return
 }
 
-func InputUserLogin() (email, password string) {
+func InputUserLogin(nextStep func()) (email, password string) {
 	fmt.Println("Enter your email: ")
 	fmt.Scan(&email)
+	util.CheckForExitInput[string](email, nextStep)
 
 	fmt.Println("Enter your password: ")
 	fmt.Scan(&password)
+	util.CheckForExitInput[string](password, nextStep)
 
 	return
 }
