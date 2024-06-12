@@ -57,7 +57,7 @@ func GetMenuConfig(menu string) MenuConfig {
 		return MenuConfig{
 			Name:        "ADMIN_LOGIN_MENU",
 			RouteIdx:    0,
-			ChoiceIdx:   2,
+			ChoiceIdx:   1,
 			UserTypeIdx: 0,
 		}
 	case ADMIN_AUTH_MENU_BACK:

@@ -29,7 +29,7 @@ func InitRoutes() {
 
 	// Inisialisasi data User
 	USERS[0] = entity.User{Id: 1, Name: "test", Email: "test@test.com", Password: "12345", IsVerified: true}
-	USERS[1] = entity.User{Id: 2, Name: "test2", Email: "test2@test.com", Password: "12345", IsVerified: true}
+	USERS[1] = entity.User{Id: 2, Name: "test2", Email: "test2@test.com", Password: "12345", IsVerified: false}
 	ADMINS[0] = entity.UserAdmin{Id: 1, Name: "admin", Email: "admin@test.com", Password: "12345"}
 	EMAILS[0] = entity.Email{Id: 1, From: "test@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 1", Body: "Ini test email saja. Jangan diubah dlu ya 1,.. hello world!", Timestamp: "2021-01-01 00:00:01"}
 	EMAILS[1] = entity.Email{Id: 2, From: "test2@test.com", To: "test3@test.com", IsRead: false, Subject: "test email 2", Body: "Ini test email saja. Jangan diubah dlu ya 2,.. hello world!", Timestamp: "2021-01-01 00:00:02"}
@@ -90,6 +90,7 @@ func InitRoutes() {
 								} else {
 									printStatus = util.PRINT_STATUS_SUCCESS
 									printText = status
+									loggedIn = true
 								}
 
 								decorative.PrintStatus(printStatus, printText)
