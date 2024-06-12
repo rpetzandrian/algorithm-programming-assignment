@@ -136,12 +136,20 @@ func PrintAlert(alert string) {
 	color.New(color.FgHiRed, color.Bold).Printf("%s \n", alert)
 }
 
+func PrintText(text string) {
+	color.New(color.FgHiWhite).Printf("%s \n", text)
+}
+
 // Fungsi untuk mencetak kalimat Info
 func PrintInfo(info string) {
 	color.New(color.FgHiGreen).Printf("%s \n", info)
 }
 
-func infoPage(info string) {
+func PrintWarning(warning string) {
+	color.New(color.FgHiYellow).Printf("%s \n", warning)
+}
+
+func InfoPage(info string) {
 	PrintLine()
 	PrintSubtitle(info)
 	PrintBottomLine()
