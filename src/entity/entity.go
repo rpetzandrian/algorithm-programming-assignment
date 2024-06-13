@@ -1,28 +1,28 @@
 package entity
 
 type User struct {
-	Id         int
-	Name       string
-	Email      string
-	Password   string
-	IsVerified bool
+	Id         int    `json:"id"`
+	Name       string `json:"name"`
+	Email      string `json:"email"`
+	Password   string `json:"password"`
+	IsVerified bool   `json:"is_verified"`
 }
 
 type UserAdmin struct {
-	Id       int
-	Name     string
-	Email    string
-	Password string
+	Id       int    `json:"id"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type Email struct {
-	Id        int
-	From      string
-	To        string
-	Subject   string
-	Body      string
-	IsRead    bool
-	Timestamp string
+	Id        int    `json:"id"`
+	From      string `json:"from"`
+	To        string `json:"to"`
+	Subject   string `json:"subject"`
+	Body      string `json:"body"`
+	IsRead    bool   `json:"is_read"`
+	Timestamp string `json:"timestamp"`
 }
 
 type Choice struct {

@@ -119,8 +119,23 @@ func EmailList(email1, email2 string, emails entity.EMAIL_LIST) (mails entity.EM
 		}
 	}
 
-	mails = sortEmailByTimestamp(emailList)
+	mails = reassignEmail(sortEmailByTimestamp(emailList))
+
 	return
+}
+
+func reassignEmail(emails entity.EMAIL_LIST) (mails entity.EMAIL_LIST) {
+	x := 0
+	for i := 0; i < len(emails); i++ {
+		if emails[i] != (entity.Email{}) {
+			emails[x] = emails[i]
+			x += 1
+
+			emails[i] = entity.Email{}
+		}
+	}
+
+	return emails
 }
 
 func sortEmailByTimestamp(emails entity.EMAIL_LIST) (sortedEmailList entity.EMAIL_LIST) {
@@ -154,6 +169,20 @@ func ShowEmailList(emails entity.EMAIL_LIST) (counter int) {
 	}
 	decorative.PrintInfo("End of List.")
 	fmt.Println("==============================================")
+
+	return
+}
+
+func DeleteEmail(emails *entity.EMAIL_LIST, emailId int) (err bool, message string) {
+	err = true
+	message = "Email not found"
+	for idx, email := range emails {
+		if email.Id == emailId {
+			emails[idx] = entity.Email{}
+			err = false
+			message = "Email deleted successfully"
+		}
+	}
 
 	return
 }

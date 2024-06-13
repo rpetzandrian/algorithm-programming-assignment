@@ -392,22 +392,50 @@ func InitRoutes() {
 					{
 						ChoiceText: util.USER_SUB_MENU_EMAIL_LIST,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							decorative.PrintStatus(printStatus, printText)
 							decorative.ResetPrintStatus(&printStatus, &printText)
 							HeaderUserMenu()
 							headerPage[int]("Email Page")
 
 							emails.ReadEmail(selectedEmailIdx.From, selectedEmailIdx.To, &EMAILS, CurrentLogged)
 
-							fmt.Println("Selected Email:  ", selectedEmailIdx) // debug,.. need deleted
+							// fmt.Println("Selected Email:  ", selectedEmailIdx) // debug,.. need deleted
 							list := emails.EmailList(selectedEmailIdx.From, selectedEmailIdx.To, EMAILS)
-							emails.ShowEmailList(list)
+							totalIdx := emails.ShowEmailList(list)
 
 							for *userTypeIndex == 1 && *routeIndex == 1 && *choiceIndex == 3 {
+								decorative.PrintInfo(" Input email number: ")
+								decorative.PrintInfo(" 1. Reply")
+								decorative.PrintInfo(" 2. Delete")
+
 								var key int
-								inputsMenus(0, &key)
+								inputsMenus(2, &key)
 								util.CheckForExitInput[int](key, func() {
 									navigateRoute(util.USER_SUB_MENU_INBOX, userTypeIndex, routeIndex, choiceIndex)
 								})
+
+								if key == 1 {
+									navigateRoute(util.USER_SUB_MENU_SEND_EMAIL, userTypeIndex, routeIndex, choiceIndex)
+								} else if key == 2 {
+									decorative.PrintInfo(" Input email number for delete: ")
+									var idx int
+									inputsMenus(totalIdx, &idx)
+									util.CheckForExitInput[int](idx, func() {
+										navigateRoute(util.USER_SUB_MENU_EMAIL_LIST, userTypeIndex, routeIndex, choiceIndex)
+									})
+
+									errDelete, message := emails.DeleteEmail(&EMAILS, list[idx-1].Id)
+
+									if errDelete {
+										printStatus = util.PRINT_STATUS_ERROR
+										printText = message
+									} else {
+										printStatus = util.PRINT_STATUS_SUCCESS
+										printText = message
+									}
+
+									navigateRoute(util.USER_SUB_MENU_EMAIL_LIST, userTypeIndex, routeIndex, choiceIndex)
+								}
 							}
 						},
 					},
