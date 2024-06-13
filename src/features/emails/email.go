@@ -11,12 +11,19 @@ import (
 	"time"
 )
 
-func WriteEmail(currentUser *entity.LoggedUser, nextStep func()) (to, subject, body string) {
+func WriteEmail(replyEmail string, currentUser *entity.LoggedUser, nextStep func()) (to, subject, body string) {
 	//reader := bufio.NewReader(os.Stdin)
 
-	fmt.Println("To :")
-	fmt.Scan(&to)
-	util.CheckForExitInput[string](to, nextStep)
+	lenReplyMail := len(replyEmail)
+
+	if lenReplyMail == 0 {
+		fmt.Println("To :")
+		fmt.Scan(&to)
+		util.CheckForExitInput[string](to, nextStep)
+	} else if lenReplyMail > 0 {
+		fmt.Printf("To :\n%s\n", replyEmail)
+		to = replyEmail
+	}
 
 	fmt.Println("Subject :")
 	fmt.Scan(&subject)
@@ -172,6 +179,30 @@ func ShowEmailList(emails entity.EMAIL_LIST) (counter int) {
 				decorative.PrintAlert("Unread")
 
 			}
+			fmt.Println("==============================================")
+
+			counter++
+		}
+	}
+	decorative.PrintInfo("End of List.")
+	fmt.Println("==============================================")
+
+	return
+}
+
+func ShowEmailListInbox(emails entity.EMAIL_LIST) (counter int) {
+	fmt.Println("==============================================")
+	for i := 0; i < len(emails); i++ {
+		if emails[i] != (entity.Email{}) {
+			decorative.PrintInfo(fmt.Sprintf("No: %d :: %20s\n", i+1, emails[i].Timestamp))
+			decorative.PrintText(fmt.Sprintf("From: %s", emails[i].From))
+			decorative.PrintText(fmt.Sprintf("To: %s", emails[i].To))
+			if len(emails[i].Body) > 10 {
+				decorative.PrintText(fmt.Sprintf("Body: %s....", emails[i].Body[0:10]))
+			} else {
+				decorative.PrintText(fmt.Sprintf("Body: %s", emails[i].Body))
+			}
+
 			fmt.Println("==============================================")
 
 			counter++

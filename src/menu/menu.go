@@ -18,9 +18,14 @@ var USERS entity.USER_LIST
 var ADMINS entity.USER_ADMIN_LIST
 var EMAILS entity.EMAIL_LIST
 var CurrentLogged entity.LoggedUser
+
 var printStatus string
 var printText string
+
 var selectedEmailIdx entity.Email
+
+// Reply email purpose
+var replyEmail string
 
 func InitRoutes() {
 
@@ -283,6 +288,7 @@ func InitRoutes() {
 								} else {
 									isLoggedIn = true
 									printStatus = util.PRINT_STATUS_SUCCESS
+									decorative.ResetPrintStatus(&printStatus, &printText)
 									navigateRoute(util.USER_SUB_MENU, userTypeIndex, routeIndex, choiceIndex)
 								}
 							}
@@ -339,7 +345,9 @@ func InitRoutes() {
 								}
 
 								decorative.ResetPrintStatus(&printStatus, &printText)
-								to, subject, body := emails.WriteEmail(&CurrentLogged, func() {
+								to, subject, body := emails.WriteEmail(replyEmail, &CurrentLogged, func() {
+									replyEmail = ""
+									decorative.ResetPrintStatus(&printStatus, &printText)
 									navigateRoute(util.USER_SUB_MENU, userTypeIndex, routeIndex, choiceIndex)
 								})
 								err, message := emails.SendEmail(CurrentLogged.Email, to, subject, body, &EMAILS)
@@ -368,7 +376,7 @@ func InitRoutes() {
 							headerPage[int]("Inbox Page")
 
 							mail := emails.RetrieveEmails(EMAILS, CurrentLogged.Email)
-							totalIdx := emails.ShowEmailList(mail)
+							totalIdx := emails.ShowEmailListInbox(mail)
 
 							idx := 0
 							decorative.PrintInfo(" Input email number: ")
@@ -393,20 +401,55 @@ func InitRoutes() {
 					{
 						ChoiceText: util.USER_SUB_MENU_EMAIL_LIST,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
-							decorative.ResetPrintStatus(&printStatus, &printText)
 							HeaderUserMenu()
 							headerPage[int]("Email Page")
+							decorative.PrintStatus(printStatus, printText)
+							decorative.ResetPrintStatus(&printStatus, &printText)
 
-							fmt.Println("Selected Email:  ", selectedEmailIdx) // debug,.. need deleted
+							emails.ReadEmail(selectedEmailIdx.From, selectedEmailIdx.To, &EMAILS, CurrentLogged)
+
+							// fmt.Println("Selected Email:  ", selectedEmailIdx) // debug,.. need deleted
 							list := emails.EmailList(selectedEmailIdx.From, selectedEmailIdx.To, EMAILS)
-							emails.ShowEmailList(list)
+							totalIdx := emails.ShowEmailList(list)
 
 							for *userTypeIndex == 1 && *routeIndex == 1 && *choiceIndex == 3 {
+								decorative.PrintInfo(" Input action number: ")
+								decorative.PrintInfo(" 1. Reply")
+								decorative.PrintInfo(" 2. Delete")
+
 								var key int
-								inputsMenus(0, &key)
+								inputsMenus(2, &key)
 								util.CheckForExitInput[int](key, func() {
 									navigateRoute(util.USER_SUB_MENU_INBOX, userTypeIndex, routeIndex, choiceIndex)
 								})
+
+								if key == 1 {
+									if CurrentLogged.Email == selectedEmailIdx.From {
+										replyEmail = selectedEmailIdx.To
+									} else if CurrentLogged.Email == selectedEmailIdx.To {
+										replyEmail = selectedEmailIdx.From
+									}
+									navigateRoute(util.USER_SUB_MENU_SEND_EMAIL, userTypeIndex, routeIndex, choiceIndex)
+								} else if key == 2 {
+									decorative.PrintInfo(" Input email number for delete: ")
+									var idx int
+									inputsMenus(totalIdx, &idx)
+									util.CheckForExitInput[int](idx, func() {
+										navigateRoute(util.USER_SUB_MENU_EMAIL_LIST, userTypeIndex, routeIndex, choiceIndex)
+									})
+
+									errDelete, message := emails.DeleteEmail(&EMAILS, list[idx-1].Id)
+
+									if errDelete {
+										printStatus = util.PRINT_STATUS_ERROR
+										printText = message
+									} else {
+										printStatus = util.PRINT_STATUS_SUCCESS
+										printText = message
+									}
+
+									navigateRoute(util.USER_SUB_MENU_EMAIL_LIST, userTypeIndex, routeIndex, choiceIndex)
+								}
 							}
 						},
 					},
