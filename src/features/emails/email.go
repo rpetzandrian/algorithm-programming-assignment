@@ -2,17 +2,19 @@ package emails
 
 import (
 	//"bufio"
+	"bufio"
 	"email-app/src/decorative"
 	"email-app/src/entity"
 	"email-app/src/util"
 	"fmt"
+	"os"
 
 	//"os"
 	"time"
 )
 
 func WriteEmail(replyEmail string, currentUser *entity.LoggedUser, nextStep func()) (to, subject, body string) {
-	//reader := bufio.NewReader(os.Stdin)
+	reader := bufio.NewReader(os.Stdin)
 
 	lenReplyMail := len(replyEmail)
 
@@ -26,13 +28,11 @@ func WriteEmail(replyEmail string, currentUser *entity.LoggedUser, nextStep func
 	}
 
 	fmt.Println("Subject :")
-	fmt.Scan(&subject)
-	//subject, _ = reader.ReadString('\n')
+	subject, _ = reader.ReadString('\n')
 	util.CheckForExitInput[string](subject, nextStep)
 
 	fmt.Println("Body :")
-	fmt.Scan(&body)
-	//body, _ = reader.ReadString('\n')
+	body, _ = reader.ReadString('\n')
 	util.CheckForExitInput[string](body, nextStep)
 
 	return
