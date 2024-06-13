@@ -96,21 +96,30 @@ func RetrieveEmails(emails entity.EMAIL_LIST, email string) (result entity.EMAIL
 	// sort email list by timestamp
 	sortedEmailList := sortEmailByTimestamp(emailList)
 
-	var user = make(map[string]bool)
+	type User struct {
+		exist bool
+		idx   int
+	}
+
+	var user = make(map[string]User)
 	idx := 0
 	for i := 0; i < len(sortedEmailList); i++ {
 		if sortedEmailList[i] != (entity.Email{}) {
 			if sortedEmailList[i].From == email {
-				if !user[sortedEmailList[i].To] {
+				if !user[sortedEmailList[i].To].exist {
 					result[idx] = sortedEmailList[i]
-					user[sortedEmailList[i].To] = true
+					user[sortedEmailList[i].To] = User{true, idx}
 					idx++
+				} else {
+					result[user[sortedEmailList[i].To].idx] = sortedEmailList[i]
 				}
 			} else if sortedEmailList[i].To == email {
-				if !user[sortedEmailList[i].From] {
+				if !user[sortedEmailList[i].From].exist {
 					result[idx] = sortedEmailList[i]
-					user[sortedEmailList[i].From] = true
+					user[sortedEmailList[i].From] = User{true, idx}
 					idx++
+				} else {
+					result[user[sortedEmailList[i].From].idx] = sortedEmailList[i]
 				}
 			}
 		}
