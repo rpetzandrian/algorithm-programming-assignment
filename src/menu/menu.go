@@ -6,7 +6,9 @@ import (
 	"email-app/src/features/authentication"
 	"email-app/src/features/emails"
 	"email-app/src/util"
+	"encoding/json"
 	"fmt"
+	"os"
 )
 
 var routes entity.USER_TYPE_LIST
@@ -27,10 +29,24 @@ func InitRoutes() {
 	routeIndex = -1    // menu
 	choiceIndex = -1   // sub menu
 
-	// Init Seed
-	util.GenerateAdminSeed(&ADMINS)
-	util.GenerateUserSeed(&USERS)
-	util.GenerateEmailSeed(&EMAILS)
+	// Inisialisasi data User
+	seedData()
+	// USERS[0] = entity.User{Id: 1, Name: "test", Email: "test@test.com", Password: "12345", IsVerified: true}
+	// USERS[1] = entity.User{Id: 2, Name: "test2", Email: "test2@test.com", Password: "12345", IsVerified: true}
+	// USERS[2] = entity.User{Id: 2, Name: "test3", Email: "test3@test.com", Password: "12345", IsVerified: true}
+	// ADMINS[0] = entity.UserAdmin{Id: 1, Name: "admin", Email: "admin@test.com", Password: "12345"}
+	// EMAILS[0] = entity.Email{Id: 1, From: "test@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 1", Body: "Ini test email saja. Jangan diubah dlu ya 1,.. hello world!", Timestamp: "2021-01-01 00:00:01"}
+	// EMAILS[1] = entity.Email{Id: 2, From: "test2@test.com", To: "test3@test.com", IsRead: false, Subject: "test email 2", Body: "Ini test email saja. Jangan diubah dlu ya 2,.. hello world!", Timestamp: "2021-01-01 00:00:02"}
+	// EMAILS[2] = entity.Email{Id: 3, From: "test2@test.com", To: "test@test.com", IsRead: false, Subject: "test email 3", Body: "Ini test email saja. Jangan diubah dlu ya 3,.. hello world!", Timestamp: "2021-01-01 00:00:03"}
+	// EMAILS[3] = entity.Email{Id: 4, From: "test@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 4", Body: "Ini test email saja. Jangan diubah dlu ya 4,.. hello world!", Timestamp: "2021-01-01 00:00:04"}
+	// EMAILS[4] = entity.Email{Id: 5, From: "test@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 5", Body: "Ini test email saja. Jangan diubah dlu ya 5,.. hello world!", Timestamp: "2021-01-01 00:00:05"}
+	// EMAILS[5] = entity.Email{Id: 6, From: "test2@test.com", To: "test@test.com", IsRead: false, Subject: "test email 6", Body: "Ini test email saja. Jangan diubah dlu ya 6,.. hello world!", Timestamp: "2021-01-01 00:00:06"}
+	// EMAILS[6] = entity.Email{Id: 7, From: "test3@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 7", Body: "Ini test email saja. Jangan diubah dlu ya 7,.. hello world!", Timestamp: "2021-01-01 00:00:07"}
+	// EMAILS[7] = entity.Email{Id: 8, From: "test2@test.com", To: "test@test.com", IsRead: false, Subject: "test email 8", Body: "Ini test email saja. Jangan diubah dlu ya 8,.. hello world!", Timestamp: "2021-01-01 00:00:08"}
+	// EMAILS[8] = entity.Email{Id: 9, From: "test@test.com", To: "test4@test.com", IsRead: false, Subject: "test email 9", Body: "Ini test email saja. Jangan diubah dlu ya 9,.. hello world!", Timestamp: "2021-01-01 00:00:09"}
+	// EMAILS[9] = entity.Email{Id: 10, From: "test2@test.com", To: "test@test.com", IsRead: false, Subject: "test email 10", Body: "Ini test email saja. Jangan diubah dlu ya 10,.. hello world!", Timestamp: "2021-01-01 00:00:10"}
+	// EMAILS[10] = entity.Email{Id: 11, From: "test@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 11", Body: "Ini test email saja. Jangan diubah dlu ya 11,.. hello world!", Timestamp: "2021-01-01 00:00:11"}
+	// EMAILS[11] = entity.Email{Id: 12, From: "test3@test.com", To: "test@test.com", IsRead: false, Subject: "test email 12", Body: "Ini test email saja. Jangan diubah dlu ya 12,.. hello world!", Timestamp: "2021-01-01 00:00:12"}
 
 	CurrentLogged = entity.LoggedUser{Id: -1, Name: "", Email: "", Role: -1}
 
@@ -53,7 +69,6 @@ func InitRoutes() {
 					decorative.PrintBottomLine()
 
 					navigateInputIndex(3, choiceIndex)
-
 				},
 				ChoiceList: [4]entity.Choice{
 					{
@@ -382,21 +397,51 @@ func InitRoutes() {
 					{
 						ChoiceText: util.USER_SUB_MENU_EMAIL_LIST,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
+							decorative.PrintStatus(printStatus, printText)
 							decorative.ResetPrintStatus(&printStatus, &printText)
 							HeaderUserMenu()
 							headerPage[int]("Email Page")
 
-							fmt.Println("Selected Email:  ", selectedEmailIdx) // debug,.. need deleted
+							emails.ReadEmail(selectedEmailIdx.From, selectedEmailIdx.To, &EMAILS, CurrentLogged)
+
+							// fmt.Println("Selected Email:  ", selectedEmailIdx) // debug,.. need deleted
 							list := emails.EmailList(selectedEmailIdx.From, selectedEmailIdx.To, EMAILS)
-							emails.ShowEmailList(list)
+							totalIdx := emails.ShowEmailList(list)
 
 							for *userTypeIndex == 1 && *routeIndex == 1 && *choiceIndex == 3 {
+								decorative.PrintInfo(" Input email number: ")
+								decorative.PrintInfo(" 1. Reply")
+								decorative.PrintInfo(" 2. Delete")
+
 								var key int
-								inputsMenus(0, &key)
+								inputsMenus(2, &key)
 								util.CheckForExitInput[int](key, func() {
 									decorative.ResetPrintStatus(&printStatus, &printText)
 									navigateRoute(util.USER_SUB_MENU_INBOX, userTypeIndex, routeIndex, choiceIndex)
 								})
+
+								if key == 1 {
+									navigateRoute(util.USER_SUB_MENU_SEND_EMAIL, userTypeIndex, routeIndex, choiceIndex)
+								} else if key == 2 {
+									decorative.PrintInfo(" Input email number for delete: ")
+									var idx int
+									inputsMenus(totalIdx, &idx)
+									util.CheckForExitInput[int](idx, func() {
+										navigateRoute(util.USER_SUB_MENU_EMAIL_LIST, userTypeIndex, routeIndex, choiceIndex)
+									})
+
+									errDelete, message := emails.DeleteEmail(&EMAILS, list[idx-1].Id)
+
+									if errDelete {
+										printStatus = util.PRINT_STATUS_ERROR
+										printText = message
+									} else {
+										printStatus = util.PRINT_STATUS_SUCCESS
+										printText = message
+									}
+
+									navigateRoute(util.USER_SUB_MENU_EMAIL_LIST, userTypeIndex, routeIndex, choiceIndex)
+								}
 							}
 						},
 					},
@@ -583,4 +628,33 @@ func validateMenuInputs(max int, input *int) (err bool) {
 	}
 
 	return false
+}
+
+func seedData() {
+	// Read data from JSON file
+	path, _ := os.Getwd()
+	fmt.Println(path)
+	file, err := os.Open(path + "/src/seed/data.json")
+	if err != nil {
+		fmt.Println("Error opening data file:", err)
+		return
+	}
+	defer file.Close()
+
+	// Decode JSON data into structs
+	var data struct {
+		Users  []entity.User      `json:"users"`
+		Admins []entity.UserAdmin `json:"admins"`
+		Emails []entity.Email     `json:"emails"`
+	}
+	err = json.NewDecoder(file).Decode(&data)
+	if err != nil {
+		fmt.Println("Error decoding JSON data:", err)
+		return
+	}
+
+	// Populate USERS, ADMINS, and EMAILS with data from JSON
+	copy(USERS[:], data.Users)
+	copy(ADMINS[:], data.Admins)
+	copy(EMAILS[:], data.Emails)
 }
