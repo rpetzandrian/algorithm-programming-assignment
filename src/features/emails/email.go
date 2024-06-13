@@ -167,9 +167,9 @@ func ShowEmailList(emails entity.EMAIL_LIST) (counter int) {
 			decorative.PrintText(fmt.Sprintf("Body: %s", emails[i].Body))
 
 			if condition := emails[i].IsRead; condition {
-				decorative.PrintInfo("R")
+				decorative.PrintInfo("Read")
 			} else {
-				decorative.PrintAlert("U")
+				decorative.PrintAlert("Unread")
 
 			}
 			fmt.Println("==============================================")

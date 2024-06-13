@@ -29,24 +29,8 @@ func InitRoutes() {
 	routeIndex = -1    // menu
 	choiceIndex = -1   // sub menu
 
-	// Inisialisasi data User
+	// Init Seed
 	seedData()
-	// USERS[0] = entity.User{Id: 1, Name: "test", Email: "test@test.com", Password: "12345", IsVerified: true}
-	// USERS[1] = entity.User{Id: 2, Name: "test2", Email: "test2@test.com", Password: "12345", IsVerified: true}
-	// USERS[2] = entity.User{Id: 2, Name: "test3", Email: "test3@test.com", Password: "12345", IsVerified: true}
-	// ADMINS[0] = entity.UserAdmin{Id: 1, Name: "admin", Email: "admin@test.com", Password: "12345"}
-	// EMAILS[0] = entity.Email{Id: 1, From: "test@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 1", Body: "Ini test email saja. Jangan diubah dlu ya 1,.. hello world!", Timestamp: "2021-01-01 00:00:01"}
-	// EMAILS[1] = entity.Email{Id: 2, From: "test2@test.com", To: "test3@test.com", IsRead: false, Subject: "test email 2", Body: "Ini test email saja. Jangan diubah dlu ya 2,.. hello world!", Timestamp: "2021-01-01 00:00:02"}
-	// EMAILS[2] = entity.Email{Id: 3, From: "test2@test.com", To: "test@test.com", IsRead: false, Subject: "test email 3", Body: "Ini test email saja. Jangan diubah dlu ya 3,.. hello world!", Timestamp: "2021-01-01 00:00:03"}
-	// EMAILS[3] = entity.Email{Id: 4, From: "test@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 4", Body: "Ini test email saja. Jangan diubah dlu ya 4,.. hello world!", Timestamp: "2021-01-01 00:00:04"}
-	// EMAILS[4] = entity.Email{Id: 5, From: "test@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 5", Body: "Ini test email saja. Jangan diubah dlu ya 5,.. hello world!", Timestamp: "2021-01-01 00:00:05"}
-	// EMAILS[5] = entity.Email{Id: 6, From: "test2@test.com", To: "test@test.com", IsRead: false, Subject: "test email 6", Body: "Ini test email saja. Jangan diubah dlu ya 6,.. hello world!", Timestamp: "2021-01-01 00:00:06"}
-	// EMAILS[6] = entity.Email{Id: 7, From: "test3@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 7", Body: "Ini test email saja. Jangan diubah dlu ya 7,.. hello world!", Timestamp: "2021-01-01 00:00:07"}
-	// EMAILS[7] = entity.Email{Id: 8, From: "test2@test.com", To: "test@test.com", IsRead: false, Subject: "test email 8", Body: "Ini test email saja. Jangan diubah dlu ya 8,.. hello world!", Timestamp: "2021-01-01 00:00:08"}
-	// EMAILS[8] = entity.Email{Id: 9, From: "test@test.com", To: "test4@test.com", IsRead: false, Subject: "test email 9", Body: "Ini test email saja. Jangan diubah dlu ya 9,.. hello world!", Timestamp: "2021-01-01 00:00:09"}
-	// EMAILS[9] = entity.Email{Id: 10, From: "test2@test.com", To: "test@test.com", IsRead: false, Subject: "test email 10", Body: "Ini test email saja. Jangan diubah dlu ya 10,.. hello world!", Timestamp: "2021-01-01 00:00:10"}
-	// EMAILS[10] = entity.Email{Id: 11, From: "test@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 11", Body: "Ini test email saja. Jangan diubah dlu ya 11,.. hello world!", Timestamp: "2021-01-01 00:00:11"}
-	// EMAILS[11] = entity.Email{Id: 12, From: "test3@test.com", To: "test@test.com", IsRead: false, Subject: "test email 12", Body: "Ini test email saja. Jangan diubah dlu ya 12,.. hello world!", Timestamp: "2021-01-01 00:00:12"}
 
 	CurrentLogged = entity.LoggedUser{Id: -1, Name: "", Email: "", Role: -1}
 
@@ -69,6 +53,7 @@ func InitRoutes() {
 					decorative.PrintBottomLine()
 
 					navigateInputIndex(3, choiceIndex)
+
 				},
 				ChoiceList: [4]entity.Choice{
 					{
@@ -88,6 +73,7 @@ func InitRoutes() {
 								err, status := authentication.RegisterAdmin(name, email, password, &ADMINS)
 
 								if err {
+									util.ClearScreen()
 									printStatus = util.PRINT_STATUS_ERROR
 									printText = status
 									navigateRoute(util.ADMIN_AUTH_MENU, userTypeIndex, routeIndex, choiceIndex)
@@ -115,7 +101,11 @@ func InitRoutes() {
 							for !loggedIn {
 								decorative.HeaderTemplate()
 								headerPage[string]("Admin Login Page")
-								decorative.PrintStatus(printStatus, printText)
+								if printStatus == util.PRINT_STATUS_ERROR {
+									decorative.PrintStatus(printStatus, printText)
+								} else if printStatus == util.PRINT_STATUS_NOTHING {
+									decorative.PrintNothing()
+								}
 
 								email, password := authentication.InputUserLogin(func() {
 									decorative.ResetPrintStatus(&printStatus, &printText)
@@ -288,8 +278,8 @@ func InitRoutes() {
 								printText = status
 
 								if err {
-									printStatus = util.PRINT_STATUS_ERROR
 									util.ClearScreen()
+									printStatus = util.PRINT_STATUS_ERROR
 								} else {
 									isLoggedIn = true
 									printStatus = util.PRINT_STATUS_SUCCESS
@@ -336,19 +326,26 @@ func InitRoutes() {
 					{
 						ChoiceText: util.USER_SUB_MENU_SEND_EMAIL,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
-							HeaderUserMenu()
-							headerPage[string]("Send Email Page")
 
 							sent := false
 							for !sent {
+								HeaderUserMenu()
+								headerPage[string]("Send Email Page")
+
+								if printStatus == util.PRINT_STATUS_SUCCESS || printStatus == util.PRINT_STATUS_ERROR {
+									decorative.PrintStatus(printStatus, printText)
+								} else {
+									decorative.PrintNothing()
+								}
+
 								decorative.ResetPrintStatus(&printStatus, &printText)
 								to, subject, body := emails.WriteEmail(&CurrentLogged, func() {
-									decorative.ResetPrintStatus(&printStatus, &printText)
 									navigateRoute(util.USER_SUB_MENU, userTypeIndex, routeIndex, choiceIndex)
 								})
 								err, message := emails.SendEmail(CurrentLogged.Email, to, subject, body, &EMAILS)
 
 								if err {
+									util.ClearScreen()
 									printStatus = util.PRINT_STATUS_ERROR
 									printText = message
 								} else {
@@ -377,7 +374,6 @@ func InitRoutes() {
 							decorative.PrintInfo(" Input email number: ")
 							inputsMenus(totalIdx, &idx)
 							util.CheckForExitInput[int](idx, func() {
-								decorative.ResetPrintStatus(&printStatus, &printText)
 								navigateRoute(util.USER_SUB_MENU, userTypeIndex, routeIndex, choiceIndex)
 							})
 
@@ -397,51 +393,20 @@ func InitRoutes() {
 					{
 						ChoiceText: util.USER_SUB_MENU_EMAIL_LIST,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
-							decorative.PrintStatus(printStatus, printText)
 							decorative.ResetPrintStatus(&printStatus, &printText)
 							HeaderUserMenu()
 							headerPage[int]("Email Page")
 
-							emails.ReadEmail(selectedEmailIdx.From, selectedEmailIdx.To, &EMAILS, CurrentLogged)
-
-							// fmt.Println("Selected Email:  ", selectedEmailIdx) // debug,.. need deleted
+							fmt.Println("Selected Email:  ", selectedEmailIdx) // debug,.. need deleted
 							list := emails.EmailList(selectedEmailIdx.From, selectedEmailIdx.To, EMAILS)
-							totalIdx := emails.ShowEmailList(list)
+							emails.ShowEmailList(list)
 
 							for *userTypeIndex == 1 && *routeIndex == 1 && *choiceIndex == 3 {
-								decorative.PrintInfo(" Input email number: ")
-								decorative.PrintInfo(" 1. Reply")
-								decorative.PrintInfo(" 2. Delete")
-
 								var key int
-								inputsMenus(2, &key)
+								inputsMenus(0, &key)
 								util.CheckForExitInput[int](key, func() {
-									decorative.ResetPrintStatus(&printStatus, &printText)
 									navigateRoute(util.USER_SUB_MENU_INBOX, userTypeIndex, routeIndex, choiceIndex)
 								})
-
-								if key == 1 {
-									navigateRoute(util.USER_SUB_MENU_SEND_EMAIL, userTypeIndex, routeIndex, choiceIndex)
-								} else if key == 2 {
-									decorative.PrintInfo(" Input email number for delete: ")
-									var idx int
-									inputsMenus(totalIdx, &idx)
-									util.CheckForExitInput[int](idx, func() {
-										navigateRoute(util.USER_SUB_MENU_EMAIL_LIST, userTypeIndex, routeIndex, choiceIndex)
-									})
-
-									errDelete, message := emails.DeleteEmail(&EMAILS, list[idx-1].Id)
-
-									if errDelete {
-										printStatus = util.PRINT_STATUS_ERROR
-										printText = message
-									} else {
-										printStatus = util.PRINT_STATUS_SUCCESS
-										printText = message
-									}
-
-									navigateRoute(util.USER_SUB_MENU_EMAIL_LIST, userTypeIndex, routeIndex, choiceIndex)
-								}
 							}
 						},
 					},
@@ -629,7 +594,6 @@ func validateMenuInputs(max int, input *int) (err bool) {
 
 	return false
 }
-
 func seedData() {
 	// Read data from JSON file
 	path, _ := os.Getwd()
