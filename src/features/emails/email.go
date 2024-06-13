@@ -57,7 +57,16 @@ func SendEmail(from string, to string, subject string, body string, emails *enti
 	return false, "Email sent successfully"
 }
 
-func ReadEmail(fromEmail, toEmail string, emails *entity.EMAIL_LIST) {
+func ReadEmail(email1, email2 string, emails *entity.EMAIL_LIST, currentLogin entity.LoggedUser) {
+	var fromEmail, toEmail string
+	if email1 != currentLogin.Email {
+		fromEmail = email1
+		toEmail = email2
+	} else {
+		fromEmail = email2
+		toEmail = email1
+	}
+
 	for idx, email := range emails {
 		if email.From == fromEmail && email.To == toEmail {
 			emails[idx].IsRead = true

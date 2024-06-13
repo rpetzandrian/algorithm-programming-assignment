@@ -1,0 +1,158 @@
+{
+    "admins": [
+        {
+            "id": 1,
+            "name": "admin1",
+            "email": "admin1@test.com",
+            "password": "admin"
+        },
+        {
+            "id": 2,
+            "name": "admin2",
+            "email": "admin2@test.com",
+            "password": "admin"
+        }
+    ],
+    "users": [
+        {
+            "id": 1,
+            "name": "user1",
+            "email": "user1@test.com",
+            "password": "userpw"
+        },
+        {
+            "id": 2,
+            "name": "user2",
+            "email": "user2@test.com",
+            "password": "userpw"
+        },
+        {
+            "id": 3,
+            "name": "user3",
+            "email": "user3@test.com",
+            "password": "userpw"
+        },
+        {
+            "id": 4,
+            "name": "user4",
+            "email": "user4@test.com",
+            "password": "userpw"
+        },
+        {
+            "id": 5,
+            "name": "user5",
+            "email": "user5@test.com",
+            "password": "userpw"
+        }
+    ],
+    "emails": [
+        {
+            "Id": 1,
+            "subject": "subject1",
+            "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam interdum pretium sapien, non sodales justo. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae;\n Donec laoreet sed leo id euismod.",
+            "from": "user1@test.com",
+            "to": "user2@test.com",
+            "isRead": false,
+            "timestamp": "2024-01-01T00:00:00"
+        },
+        {
+            "Id": 2,
+            "subject": "subject2",
+            "body": "Integer tincidunt tempus erat eget malesuada. Praesent tempus justo nec neque faucibus molestie. Cras eget libero et dui consequat elementum.",
+            "from": "user3@test.com",
+            "to": "user4@test.com",
+            "isRead": false,
+            "timestamp": "2024-01-01T01:00:00"
+        },
+        {
+            "Id": 3,
+            "subject": "subject3",
+            "body": "Aliquam finibus quam sit amet augue condimentum, ut interdum nulla tincidunt. Pellentesque at facilisis dolor. Ut quis elit id magna convallis malesuada sed et ligula.",
+            "from": "user2@test.com",
+            "to": "user1@test.com",
+            "isRead": false,
+            "timestamp": "2024-01-01T01:02:00"
+        },
+        {
+            "Id": 4,
+            "subject": "subject4",
+            "body": "Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Donec ornare nulla urna, sed luctus mi consequat condimentum.\n Nulla vel risus convallis, vestibulum velit at, varius ipsum.",
+            "from": "user2@test.com",
+            "to": "user3@test.com",
+            "isRead": false,
+            "timestamp": "2024-01-01T01:03:05"
+        },
+        {
+            "Id": 5,
+            "subject": "subject5",
+            "body": "Pellentesque elit nulla, porta vitae arcu quis, elementum ornare est. Nunc pulvinar varius dapibus. \nIn et pretium felis, vitae fringilla enim. Nulla egestas lacinia urna, eget pellentesque elit placerat id.",
+            "from": "user3@test.com",
+            "to": "user4@test.com",
+            "isRead": false,
+            "timestamp": "2024-01-01T01:03:20"
+        },
+        {
+            "Id": 6,
+            "subject": "subject6",
+            "body": "Quisque porttitor ex a ligula feugiat, eget fringilla erat mattis. Suspendisse potenti. Sed velit nunc, dictum id turpis ut, blandit tristique risus. Ut ultrices pharetra diam, sed euismod ipsum pretium vitae. Vestibulum interdum nec odio vel mollis.",
+            "from": "user2@test.com",
+            "to": "user1@test.com",
+            "isRead": false,
+            "timestamp": "2024-01-01T01:10:20"
+        },
+        {
+            "Id": 7,
+            "subject": "subject7",
+            "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam interdum pretium sapien, non sodales justo. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae;\n Donec laoreet sed leo id euismod.",
+            "from": "user1@test.com",
+            "to": "user2@test.com",
+            "isRead": false,
+            "timestamp": "2024-01-01T01:15:00"
+        },
+        {
+            "Id": 8,
+            "subject": "subject8",
+            "body": "Integer tincidunt tempus erat eget malesuada. Praesent tempus justo nec neque faucibus molestie. Cras eget libero et dui consequat elementum.",
+            "from": "user2@test.com",
+            "to": "user3@test.com",
+            "isRead": false,
+            "timestamp": "2024-01-01T01:20:00"
+        },
+        {
+            "Id": 9,
+            "subject": "subject9",
+            "body": "Aliquam finibus quam sit amet augue condimentum, ut interdum nulla tincidunt. Pellentesque at facilisis dolor. Ut quis elit id magna convallis malesuada sed et ligula.",
+            "from": "user2@test.com",
+            "to": "user1@test.com",
+            "isRead": false,
+            "timestamp": "2024-01-01T01:25:00"
+        },
+        {
+            "Id": 10,
+            "subject": "subject10",
+            "body": "Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Donec ornare nulla urna, sed luctus mi consequat condimentum.\n Nulla vel risus convallis, vestibulum velit at, varius ipsum.",
+            "from": "user1@test.com",
+            "to": "user4@test.com",
+            "isRead": false,
+            "timestamp": "2024-01-01T01:30:00"
+        },
+        {
+            "Id": 11,
+            "subject": "subject11",
+            "body": "Pellentesque elit nulla, porta vitae arcu quis, elementum ornare est. Nunc pulvinar varius dapibus. \nIn et pretium felis, vitae fringilla enim. Nulla egestas lacinia urna, eget pellentesque elit placerat id.",
+            "from": "user1@test.com",
+            "to": "user3@test.com",
+            "isRead": false,
+            "timestamp": "2024-01-01T01:35:00"
+        },
+        {
+            "Id": 12,
+            "subject": "subject12",
+            "body": "Quisque porttitor ex a ligula feugiat, eget fringilla erat mattis. Suspendisse potenti. Sed velit nunc, dictum id turpis ut, blandit tristique risus. \nUt ultrices pharetra diam, sed euismod ipsum pretium vitae. Vestibulum interdum nec odio vel mollis.",
+            "from": "user1@test.com",
+            "to": "user3@test.com",
+            "isRead": false,
+            "timestamp": "2024-01-01T01:40:00"
+        }
+    ]
+}
