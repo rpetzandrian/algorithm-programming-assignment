@@ -1,28 +1,31 @@
 package emails
 
 import (
-	"bufio"
+	//"bufio"
 	"email-app/src/decorative"
 	"email-app/src/entity"
 	"email-app/src/util"
 	"fmt"
-	"os"
+
+	//"os"
 	"time"
 )
 
 func WriteEmail(currentUser *entity.LoggedUser, nextStep func()) (to, subject, body string) {
-	reader := bufio.NewReader(os.Stdin)
+	//reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("To :")
-	fmt.Scanln(&to)
+	fmt.Scan(&to)
 	util.CheckForExitInput[string](to, nextStep)
 
 	fmt.Println("Subject :")
-	subject, _ = reader.ReadString('\n')
+	fmt.Scan(&subject)
+	//subject, _ = reader.ReadString('\n')
 	util.CheckForExitInput[string](subject, nextStep)
 
 	fmt.Println("Body :")
-	body, _ = reader.ReadString('\n')
+	fmt.Scan(&body)
+	//body, _ = reader.ReadString('\n')
 	util.CheckForExitInput[string](body, nextStep)
 
 	return
@@ -133,10 +136,10 @@ func ShowEmailList(emails entity.EMAIL_LIST) (counter int) {
 	fmt.Println("==============================================")
 	for i := 0; i < len(emails); i++ {
 		if emails[i] != (entity.Email{}) {
-			decorative.PrintInfo(fmt.Sprintf("No: %d :: %20s", i+1, emails[i].Timestamp))
+			decorative.PrintInfo(fmt.Sprintf("No: %d :: %20s\n", i+1, emails[i].Timestamp))
 			decorative.PrintText(fmt.Sprintf("From: %s", emails[i].From))
 			decorative.PrintText(fmt.Sprintf("To: %s", emails[i].To))
-			decorative.PrintWarning(fmt.Sprintf("Subject: %s", emails[i].Subject))
+			decorative.PrintWarning(fmt.Sprintf("Subject: %s\n", emails[i].Subject))
 			decorative.PrintText(fmt.Sprintf("Body: %s", emails[i].Body))
 			fmt.Println("==============================================")
 

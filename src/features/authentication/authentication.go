@@ -27,7 +27,7 @@ func LoginUser(email string, password string, userList entity.USER_LIST, currUse
 
 func getUserByEmail(email string, userList entity.USER_LIST) entity.User {
 	for _, user := range userList {
-		if user.Email == email && user.IsVerified { // Access the email field using the correct syntax
+		if user.Email == email { // Access the email field using the correct syntax
 			return user
 		}
 	}

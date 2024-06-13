@@ -27,23 +27,10 @@ func InitRoutes() {
 	routeIndex = -1    // menu
 	choiceIndex = -1   // sub menu
 
-	// Inisialisasi data User
-	USERS[0] = entity.User{Id: 1, Name: "test", Email: "test@test.com", Password: "12345", IsVerified: true}
-	USERS[1] = entity.User{Id: 2, Name: "test2", Email: "test2@test.com", Password: "12345", IsVerified: true}
-	USERS[2] = entity.User{Id: 2, Name: "test3", Email: "test3@test.com", Password: "12345", IsVerified: true}
-	ADMINS[0] = entity.UserAdmin{Id: 1, Name: "admin", Email: "admin@test.com", Password: "12345"}
-	EMAILS[0] = entity.Email{Id: 1, From: "test@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 1", Body: "Ini test email saja. Jangan diubah dlu ya 1,.. hello world!", Timestamp: "2021-01-01 00:00:01"}
-	EMAILS[1] = entity.Email{Id: 2, From: "test2@test.com", To: "test3@test.com", IsRead: false, Subject: "test email 2", Body: "Ini test email saja. Jangan diubah dlu ya 2,.. hello world!", Timestamp: "2021-01-01 00:00:02"}
-	EMAILS[2] = entity.Email{Id: 3, From: "test2@test.com", To: "test@test.com", IsRead: false, Subject: "test email 3", Body: "Ini test email saja. Jangan diubah dlu ya 3,.. hello world!", Timestamp: "2021-01-01 00:00:03"}
-	EMAILS[3] = entity.Email{Id: 4, From: "test@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 4", Body: "Ini test email saja. Jangan diubah dlu ya 4,.. hello world!", Timestamp: "2021-01-01 00:00:04"}
-	EMAILS[4] = entity.Email{Id: 5, From: "test@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 5", Body: "Ini test email saja. Jangan diubah dlu ya 5,.. hello world!", Timestamp: "2021-01-01 00:00:05"}
-	EMAILS[5] = entity.Email{Id: 6, From: "test2@test.com", To: "test@test.com", IsRead: false, Subject: "test email 6", Body: "Ini test email saja. Jangan diubah dlu ya 6,.. hello world!", Timestamp: "2021-01-01 00:00:06"}
-	EMAILS[6] = entity.Email{Id: 7, From: "test3@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 7", Body: "Ini test email saja. Jangan diubah dlu ya 7,.. hello world!", Timestamp: "2021-01-01 00:00:07"}
-	EMAILS[7] = entity.Email{Id: 8, From: "test2@test.com", To: "test@test.com", IsRead: false, Subject: "test email 8", Body: "Ini test email saja. Jangan diubah dlu ya 8,.. hello world!", Timestamp: "2021-01-01 00:00:08"}
-	EMAILS[8] = entity.Email{Id: 9, From: "test@test.com", To: "test4@test.com", IsRead: false, Subject: "test email 9", Body: "Ini test email saja. Jangan diubah dlu ya 9,.. hello world!", Timestamp: "2021-01-01 00:00:09"}
-	EMAILS[9] = entity.Email{Id: 10, From: "test2@test.com", To: "test@test.com", IsRead: false, Subject: "test email 10", Body: "Ini test email saja. Jangan diubah dlu ya 10,.. hello world!", Timestamp: "2021-01-01 00:00:10"}
-	EMAILS[10] = entity.Email{Id: 11, From: "test@test.com", To: "test2@test.com", IsRead: false, Subject: "test email 11", Body: "Ini test email saja. Jangan diubah dlu ya 11,.. hello world!", Timestamp: "2021-01-01 00:00:11"}
-	EMAILS[11] = entity.Email{Id: 12, From: "test3@test.com", To: "test@test.com", IsRead: false, Subject: "test email 12", Body: "Ini test email saja. Jangan diubah dlu ya 12,.. hello world!", Timestamp: "2021-01-01 00:00:12"}
+	// Init Seed
+	util.GenerateAdminSeed(&ADMINS)
+	util.GenerateUserSeed(&USERS)
+	util.GenerateEmailSeed(&EMAILS)
 
 	CurrentLogged = entity.LoggedUser{Id: -1, Name: "", Email: "", Role: -1}
 
@@ -80,6 +67,7 @@ func InitRoutes() {
 
 							for !loggedIn {
 								name, email, password := authentication.InputUserRegister(func() {
+									decorative.ResetPrintStatus(&printStatus, &printText)
 									navigateRoute(util.ADMIN_AUTH_MENU, userTypeIndex, routeIndex, choiceIndex)
 								})
 								err, status := authentication.RegisterAdmin(name, email, password, &ADMINS)
@@ -97,7 +85,7 @@ func InitRoutes() {
 								decorative.PrintStatus(printStatus, printText)
 							}
 
-							decorative.PrintText("Press any key to navigate to login page: ")
+							decorative.PrintText("Press any key and enter to navigate to login page: ")
 							var key int
 							fmt.Scan(&key)
 							navigateRoute(util.ADMIN_LOGIN_MENU, userTypeIndex, routeIndex, choiceIndex)
@@ -106,14 +94,16 @@ func InitRoutes() {
 					{
 						ChoiceText: util.ADMIN_LOGIN_MENU,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
-							decorative.HeaderTemplate()
-							headerPage[string]("Admin Login Page")
 
 							// Function to login user
 							loggedIn := CurrentLogged.Id != -1
 							for !loggedIn {
-								decorative.ResetPrintStatus(&printStatus, &printText)
+								decorative.HeaderTemplate()
+								headerPage[string]("Admin Login Page")
+								decorative.PrintStatus(printStatus, printText)
+
 								email, password := authentication.InputUserLogin(func() {
+									decorative.ResetPrintStatus(&printStatus, &printText)
 									navigateRoute(util.ADMIN_AUTH_MENU, userTypeIndex, routeIndex, choiceIndex)
 								})
 								err, message := authentication.LoginAsAdmin(email, password, ADMINS, &CurrentLogged)
@@ -121,11 +111,10 @@ func InitRoutes() {
 								if err {
 									printStatus = util.PRINT_STATUS_ERROR
 									printText = message
+									util.ClearScreen()
 								} else {
 									loggedIn = true
 								}
-
-								decorative.PrintStatus(printStatus, printText)
 							}
 
 							navigateRoute(util.ADMIN_APPROVAL_MENU, userTypeIndex, routeIndex, choiceIndex)
@@ -191,7 +180,7 @@ func InitRoutes() {
 						ChoiceText: util.LOGOUT,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
 							authentication.LogoutUser(&CurrentLogged)
-
+							decorative.ResetPrintStatus(&printStatus, &printText)
 							navigateRoute(util.ADMIN_AUTH_MENU, userTypeIndex, routeIndex, choiceIndex)
 						},
 					},
@@ -253,7 +242,7 @@ func InitRoutes() {
 								decorative.PrintStatus(printStatus, printText)
 							}
 
-							decorative.PrintText("input any key:")
+							decorative.PrintText("Press any key and enter to navigate to login page: ")
 							var key int
 							fmt.Scan(&key)
 
@@ -263,11 +252,11 @@ func InitRoutes() {
 					{
 						ChoiceText: util.USER_AUTH_LOGIN_MENU,
 						ChoiceFunc: func(userTypeIndex *int, routeIndex *int, choiceIndex *int) {
-							decorative.HeaderTemplate()
-							headerPage[string]("User Login Page")
 							isLoggedIn := false
 
 							for !isLoggedIn {
+								decorative.HeaderTemplate()
+								headerPage[string]("User Login Page")
 
 								if printStatus == util.PRINT_STATUS_ERROR {
 									decorative.PrintStatus(printStatus, printText)
@@ -276,6 +265,7 @@ func InitRoutes() {
 								}
 
 								email, password := authentication.InputUserLogin(func() {
+									decorative.ResetPrintStatus(&printStatus, &printText)
 									navigateRoute(util.USER_AUTH_MENU, userTypeIndex, routeIndex, choiceIndex)
 								})
 								err, status := authentication.LoginUser(email, password, USERS, &CurrentLogged)
@@ -338,6 +328,7 @@ func InitRoutes() {
 							for !sent {
 								decorative.ResetPrintStatus(&printStatus, &printText)
 								to, subject, body := emails.WriteEmail(&CurrentLogged, func() {
+									decorative.ResetPrintStatus(&printStatus, &printText)
 									navigateRoute(util.USER_SUB_MENU, userTypeIndex, routeIndex, choiceIndex)
 								})
 								err, message := emails.SendEmail(CurrentLogged.Email, to, subject, body, &EMAILS)
@@ -371,6 +362,7 @@ func InitRoutes() {
 							decorative.PrintInfo(" Input email number: ")
 							inputsMenus(totalIdx, &idx)
 							util.CheckForExitInput[int](idx, func() {
+								decorative.ResetPrintStatus(&printStatus, &printText)
 								navigateRoute(util.USER_SUB_MENU, userTypeIndex, routeIndex, choiceIndex)
 							})
 
@@ -402,6 +394,7 @@ func InitRoutes() {
 								var key int
 								inputsMenus(0, &key)
 								util.CheckForExitInput[int](key, func() {
+									decorative.ResetPrintStatus(&printStatus, &printText)
 									navigateRoute(util.USER_SUB_MENU_INBOX, userTypeIndex, routeIndex, choiceIndex)
 								})
 							}
