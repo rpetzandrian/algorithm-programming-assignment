@@ -162,6 +162,13 @@ func ShowEmailList(emails entity.EMAIL_LIST) (counter int) {
 			decorative.PrintText(fmt.Sprintf("To: %s", emails[i].To))
 			decorative.PrintWarning(fmt.Sprintf("Subject: %s", emails[i].Subject))
 			decorative.PrintText(fmt.Sprintf("Body: %s", emails[i].Body))
+
+			if condition := emails[i].IsRead; condition {
+				decorative.PrintInfo("R")
+			} else {
+				decorative.PrintAlert("U")
+
+			}
 			fmt.Println("==============================================")
 
 			counter++
