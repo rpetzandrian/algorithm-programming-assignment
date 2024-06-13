@@ -1,6 +1,7 @@
 package decorative
 
 import (
+	"email-app/src/entity"
 	"email-app/src/util"
 	"fmt"
 	"strings"
@@ -66,6 +67,44 @@ func HeaderTemplate() {
 	PrintEmptyLine()
 	PrintSubtitle(" Created by: ")
 	PrintAuthor(" Rico x Daffa ")
+	PrintBottomLine()
+}
+
+func HeaderPage[T any](page string, opt ...bool) {
+	PrintLine()
+	PrintSubtitle(page)
+
+	var input T
+
+	if len(opt) < 1 || (len(opt) > 0 && !opt[0]) {
+		PrintEmptyLine()
+		switch any(input).(type) {
+		case string:
+			PrintInstruction("Type cancel and press enter to back....")
+		case int:
+			PrintInstruction("Type -1 and press enter to back....")
+		}
+	}
+	PrintBottomLine()
+}
+
+func HeaderUserMenu(CurrentLogged entity.LoggedUser) {
+	PrintLine()
+	PrintSubtitle(" Welcome " + CurrentLogged.Name)
+	PrintBottomLine()
+
+	PrintLine()
+	PrintTitle(" User Dashboard ")
+	PrintBottomLine()
+}
+
+func HeaderAdminMenu(CurrentLogged entity.LoggedUser) {
+	PrintLine()
+	PrintSubtitle(" Welcome " + CurrentLogged.Name)
+	PrintBottomLine()
+
+	PrintLine()
+	PrintTitle(" Admin Dashboard ")
 	PrintBottomLine()
 }
 
